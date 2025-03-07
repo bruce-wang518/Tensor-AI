@@ -1,19 +1,19 @@
-# KTransformers 安装指南（适用于 AutoDL 配置）
+# KTransformers 安装指南（适用于 AutoDL平台配置 https://www.autodl.com/）
 
 ## 硬件环境
-- **GPU**: 4 × RTX 4090 (24GB)
-- **内存**: 480GB（至少 382GB 可用）
-- **存储**: 约 380GB 硬盘空间
+- **GPU**: 4 × RTX 4090 (4*24GB显存,实际仅用一张，因autodl平台每张卡搭配120G内存)
+- **内存**: 480GB（至少 400GB 可用）
+- **存储**: 模型文件需约380GB 硬盘空间
 
 ## 软件环境
 - **操作系统**: Ubuntu 22.04
 - **Python**: 3.12
 - **PyTorch**: 2.5.1
-- **CUDA**: 12.4
+- **CUDA**: 12.4 (必须12.4以上，后面不要安装其他版本cuda toolkit)
 
----
 
-## 一键安装脚本
+## 整体安装流程 (安装ktransformers包->下载模型权重->运行)
+
 一，ktransformers的安装
 
 复制以下命令并粘贴到终端运行，即可完成 KTransformers 的安装：
@@ -24,11 +24,11 @@ export PATH=/usr/local/cuda/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 export CUDA_PATH=/usr/local/cuda
 
-# 2. 安装编译工具
+# 2. 安装c++编译工具
 sudo apt-get update
 sudo apt-get install -y gcc g++ cmake ninja-build
 
-# 3. 创建一个名为ktransformers的Python 虚拟环境
+# 3. 创建Python虚拟环境 (注意在虚拟环境中编译，隔离影响)
 conda create --name ktransformers python=3.11 -y
 conda init
 source ~/.bashrc  # 重新加载环境
@@ -38,7 +38,7 @@ conda activate ktransformers     #进入ktransformers环境中
 pip install torch packaging ninja cpufeature numpy
 pip install flash-attn    #安装时需等待片刻，若安装失败，则尝试： pip install flash-attn --no-build-isolation
 
-# 解决 libstdc++6 相关问题
+# 安装libstdc++6 编译库
 sudo apt update
 sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
@@ -46,33 +46,41 @@ sudo apt-get update
 sudo apt-get install --only-upgrade libstdc++6 -y
 conda install -c conda-forge libstdcxx-ng -y
 
-#(5和6步骤只需执行一个)5. 可以下载我们编译好的的ktransformers安装包，上传ktransformers.zip到autodel-tmp目录下
-unzip ktransformers.zip           #解压ktransformers
-cd ktransformers                      #进入ktransformer文件夹
-#成功后直接继续第7步，运行安装脚本
-
-# 6. 下载 KTransformers 安装包并初始化子模块
-git clone https://github.com/kvcache-ai/ktransformers.git      #从github上克隆ktransfomer安装包
-cd ktransformers              #进入ktransformers文件夹
-git submodule init
+# 5. 下载 KTransformers 安装包并初始化子模块
+git clone https://github.com/kvcache-ai/ktransformers.git      #从github上下载ktransfomer安装包
+cd ktransformers            #进入ktransformers文件夹，后续git命令必须在这个目录下执行，否则报错
+git submodule init          #ktransformers仓库的模块依赖其他仓库代码，需要一并下载
 git submodule update        #需等待片刻，由于git不稳定可能会失败，请稍等片刻继续重试命令
 
-# 7. 运行安装脚本
-sh ./install.sh                   #需稍等片刻
+#6.(代替第5步)由于git经常访问失败，可以上传事先编译好的的ktransformers安装包，到autodel-tmp目录下，并解压
+unzip ktransformers.zip           #解压ktransformers
+cd ktransformers                      #进入ktransformer文件夹
 
-#8. 安装成功后，可使用以下命令进行查看是否成功安装
+
+# 7. 运行安装脚本
+sh ./install.sh                   #最后生成ktransformers包时，比较慢，需要等待数分钟
+
+#8. 安装成功后，会安装ktransformers包到python库，可使用以下命令进行查看是否成功安装
 pip show ktransformers
 
 二，模型下载
-#1，使用modelscope（魔塔社区）下载模型DeepSeek-R1权重，需等待2-3小时
+#1.使用modelscope（魔塔社区）下载模型DeepSeek-R1权重，一共9个文件，370G,需等待2-3小时
+mkdir /root/autodl-tmp/DeepSeek-R1-GGUF
 pip install modelscope
 modelscope download --model unsloth/DeepSeek-R1-GGUF  --include 'DeepSeek-R1-Q4_K_M-*-of-00009.gguf'  --local_dir /root/autodl-tmp/DeepSeek-R1-GGUF
 
-#2，下载模型DeepSeek-R1原版模型配置文件
-mkdie ./DeepSeek-R1
+#2.下载模型DeepSeek-R1模型配置文件
+mkdir /root/autodl-tmp/DeepSeek-R1
 modelscope download --model deepseek-ai/DeepSeek-R1 --exclude '*.safetensors' --local_dir /root/autodl-tmp/DeepSeek-R1
 
 三，运行deepseek
 #在项目（即ktransformers目录）根目录下输入如下命令：
-python ./ktransformers/local_chat.py --model_path /root/autodl-tmp/DeepSeek-R1 -- gguf_path /root/autodl-tmp/DeepSeek-R1-GGUF --cpu_infer 65  --max_new_tokens 1000 --force_think true
+# max_new_tokens是输出token长度，可以根据实际情况调整
+python ./ktransformers/local_chat.py --model_path /root/autodl-tmp/DeepSeek-R1 --gguf_path /root/autodl-tmp/DeepSeek-R1-GGUF --cpu_infer 65  --max_new_tokens 1000 --force_think true
+
+
+
+参考文档：
+https://mp.weixin.qq.com/s/yS7rLSTNkp9y4UbjRC6C7w
+
 
