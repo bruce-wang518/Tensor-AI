@@ -1,0 +1,57 @@
+算能1688部署qwen或deepseek模型
+
+一. 设备和模型匹配验证
+
+   1. 验证 BModel 是否与设备匹配
+      bmrt_test --bmodel xxx.bmodel  # 其中 xxx.bmodel 为你的模型路径
+
+   2. 查看设备信息
+      bm-smi  # 确保设备正常运行
+      free -h  # 设备型号判断，1.8G 对应 8G 版本, 1.2G 对应 4G 版本
+
+二.模型部署 
+
+ #//参考页https://github.com/sophgo/sophondemo/blob/release/sample/Qwen/README.md
+
+1. 代码仓库下载
+  git clone https://github.com/sophgo/sophon-demo.git
+
+2. 内存调整 (适用于 SE9/1688 8G)
+cd /data/    #注意已经不是应用目录
+mkdir memedit && cd memedit
+wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
+tar xvf DeviceMemoryModificationKit.tgz
+cd DeviceMemoryModificationKit
+tar xvf memory_edit_{vx.x}.tar.xz  # vx.x 为对应版本号
+cd memory_edit
+./memory_edit.sh -p  # 打印当前内存布局信息
+
+
+./memory_edit.sh -c -npu 5120 -vpu 0 -vpp 40  # NPU 可访问 VPU 和 VPP 内存
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
+sudo reboot
+
+3. 根据需要，下载编译好的bmodel
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/qwen1.5/qwen1.5-1.8b_int4_seq512_bm1688_1dev_2core.bmodel
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/qwen2.5-1.5b_int4_seq512_1688_2core.bmodel
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/qwen2.5-1.5b_int4_seq1024_1688_2core.bmodel
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/qwen2.5-1.5b_int4_seq2048_1688_2core.bmodel
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/deepseek-r1-distill-qwen-1.5b_int4_seq1024_1688_2core.bmodel
+python3 -m dfss --url=open@sophgo.com:sophon-demo/Qwen/1688/deepseek-r1-distill-qwen-7b_int4_seq1024_1688_2core.bmodel
+
+4. 安装python环境(选择python方式运行，比CPP简单)
+cd sophon-demo/sample/Qwen/python
+pip3 install -r requirements.txt
+pip3 install dfss --upgrade
+python3 -m dfss --install sail  # 自动识别平台安装 (可选方案)
+
+三. 模型运行
+
+1. 配置 qwen.yaml 在config/qwen.yaml 文件中，配置推理参数:
+bmodel_path: ../models/BM1684X/qwen1.5-7b_int4_seq512_1dev.bmodel  # BModel 路径
+token_path: ./token_config  # Tokenizer 目录
+dev_ids: 0  # 设备 ID
+
+2. 运行推理
+cd python
+python3 qwen.py --config ./config/qwen.yaml
