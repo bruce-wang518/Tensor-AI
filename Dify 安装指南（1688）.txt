@@ -1,0 +1,101 @@
+# Dify 安装指南
+
+## 一、安装 Docker
+
+### **方法 1：手动安装**
+#### **1. 更新系统并安装必要依赖**
+```sh
+# Ubuntu/Debian
+sudo apt update
+sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+```
+
+#### **2. 添加 Docker 官方 GPG 密钥**
+```sh
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
+
+#### **3. 添加 Docker 官方软件源**
+```sh
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+#### **4. 安装 Docker 引擎**
+```sh
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+```
+
+#### **5. 启动 Docker 并设置开机自启**
+```sh
+sudo systemctl enable --now docker
+```
+
+#### **6. 验证 Docker 安装是否成功**
+```sh
+docker --version
+```
+
+### **方法 2：使用官方安装脚本（适用于测试环境）**
+```sh
+curl -fsSL https://get.docker.com | sudo sh
+```
+
+---
+
+## 二、下载 Dify 安装包
+```sh
+git clone https://github.com/dify-ai/dify.git
+cd dify
+```
+
+---
+
+## 三、配置环境变量
+```sh
+cp .env.example .env
+```
+
+---
+
+## 四、使用 Docker Compose 启动 Dify
+```sh
+docker-compose up -d
+```
+
+如果无法获取镜像，可按照以下步骤添加 Docker 镜像源：
+
+### **配置 Docker 镜像加速**
+```sh
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<EOF
+{
+  "registry-mirrors": [
+    "https://docker.1panel.live",
+    "https://docker.nju.edu.cn",
+    "https://docker.m.daocloud.io",
+    "https://dockerproxy.com",
+    "https://hub-mirror.c.163.com",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://registry.docker-cn.com",
+    "https://registry.cn-hangzhou.aliyuncs.com"
+  ]
+}
+EOF
+```
+
+### **重启 Docker 并重新启动 Dify**
+```sh
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+docker-compose up -d
+```
+
+---
+
+## **验证 Dify 是否启动成功**
+```sh
+docker ps
+```
+
+如果 Dify 的相关容器正在运行，则说明安装成功！🚀
