@@ -6,26 +6,36 @@ wifi： TP-LINK   12345678
 动态路由地址：192.168.19.100-200
 手动设置window机器IP时，网关和DNS地址均为192.168.19.1，地址段使用2-99
 
-1688卡ip地址，均为手动设置：
-inet0： 192.168.19.10
+
+
+第一张1688卡ip地址：
+
+inet0： 192.168.19.101 (动态获取，可能会变)
 inet1： 192.168.150.1
 
 
-如何设置1688卡网络地址：   
+第二张1688卡（盒子）ip地址：
+
+inet0： 192.168.19.104(动态获取，可能会变)
+inet1： 192.168.150.1
+
+设置卡网络地址：   
+
 1.编辑配置文件
-vi /etc/netplan/01-netcfg.yaml
+sudo vi /etc/netplan/01-netcfg.yaml
 
 根据需要修改文件内容，可以自动分配或手动固定
 version:2
 renderer: networkd
 ethernets:
-etho:
-dhcp4: yes   #路由器自动分配
+
+etho:  #路由器自动分配方式
+dhcp4: yes   
 addresses:[]
 optional:yes
 dhcp-identifier: mac
 
-eth1:
+eth1:  #手动指定IP方式
 dhcp4: no
 addresses:[192.168.150.1/24]
 optional: yes
@@ -33,5 +43,9 @@ optional: yes
 2.生效配置，无需重启
 sudo netplan apply
 
+
 3. 查看配置
    ip addr show
+
+
+经验证，板块连接TP-LINK路由器的网口需设置动态获取IP方式才可以访问外网
