@@ -1,0 +1,69 @@
+
+windows本机通过代理服务器A访问宿主机B内部的容器
+
+
+代理服务器A(例如192.168.19.101)执行以下命令
+
+
+#1安装Nginx（确保包含stream模块）
+sudo apt update
+sudo apt install nginx
+
+
+# 2 修改Nginx配置文件
+编辑 /etc/nginx/nginx.conf，在 http 块外添加 stream 配置：
+
+# 添加stream模块配置
+stream {
+    server {
+        listen 2222;  # 代理服务器监听的端口
+        proxy_pass b-server-ip:2222;  # 转发到B机器的SSH端口
+        proxy_protocol off;  # 不传递客户端真实IP
+    }
+}
+
+#3 检查Nginx配置并重启
+sudo nginx -t
+sudo systemctl restart nginx
+
+
+#4 配置防火墙，允许外部访问 2222 端口：
+sudo ufw allow 2222/tcp
+
+#5 检查SSH服务
+sudo systemctl status ssh 
+sudo systemctl restart sshd
+
+
+
+宿主机B上(例如192.168.19.104)执行以下命令
+
+#1.前台方式运行容器
+docker run  --name ssh-container  -p 2222:22   alpine:latest sh -c "apk add --no-cache openssh-server && mkdir /var/run/sshd &&  echo 'root:password' | chpasswd && ssh-keygen -A && /usr/sbin/sshd -D & tail -f /dev/null"  
+
+
+#2.另起一个终端，登录宿主机(因为第一步以前台方式启动docker)
+#进入docker容器
+ docker exec -it ssh-container sh
+
+#3.修改ssh中的PermitRootLogin yes
+
+vi /etc/ssh/sshd_config 
+
+#4.找出ssh进程id，比如7,然后杀死进程(如果docker后台方式启动，杀死ssh导致容器退出)
+ps
+kill 7
+
+#5.重新启动ssh
+/usr/sbin/sshd -D
+
+
+
+windows机器通过SSH连接宿主机
+ssh -p 2222 root@代理服务器ip   #这里用户root对应宿主机容器用户
+
+密码输入password (对应宿主机容器root的密码，运行docker时指定)
+
+
+
+
