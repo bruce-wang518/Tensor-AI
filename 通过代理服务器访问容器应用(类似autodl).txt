@@ -1,14 +1,11 @@
 
 windows本机通过代理服务器A访问宿主机B内部的容器
 
-
 代理服务器A(例如192.168.19.101)执行以下命令
-
 
 #1安装Nginx（确保包含stream模块）
 sudo apt update
 sudo apt install nginx
-
 
 # 2 修改Nginx配置文件
 编辑 /etc/nginx/nginx.conf，在 http 块外添加 stream 配置：
