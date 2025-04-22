@@ -1,0 +1,231 @@
+nvidia@nvidia-desktop:~$ sudo apt update
+nvidia@nvidia-desktop:~$ sudo apt install nvidia-jetpack -y
+nvidia@nvidia-desktop:~$ sudo apt install curl -y
+
+#安装ollama，ollama下载完成后，ollama pull 7b镜像
+nvidia@nvidia-desktop:~$ curl -fsSL https://ollama.com/install.sh | sh
+>>> Cleaning up old version at /usr/local/lib/ollama
+>>> Installing ollama to /usr/local
+>>> Downloading Linux arm64 bundle
+######################################################################## 100.0%
+>>> Downloading JetPack 6 components
+######################################################################## 100.0%
+>>> Creating ollama user...
+>>> Adding ollama user to render group...
+>>> Adding ollama user to video group...
+>>> Adding current user to ollama group...
+>>> Creating ollama systemd service...
+>>> Enabling and starting ollama service...
+Created symlink /etc/systemd/system/default.target.wants/ollama.service → /etc/systemd/system/ollama.service.
+>>> NVIDIA JetPack ready.
+>>> The Ollama API is now available at 127.0.0.1:11434.
+>>> Install complete. Run "ollama" from the command line.
+
+
+#设置docker下载镜像
+vidia@nvidia-desktop:~$ sudo vi /etc/docker/daemon.json
+{
+  "registry-mirrors": [
+    "https://docker.1panel.live",
+    "https://docker.nju.edu.cn",
+    "https://docker.m.daocloud.io",
+    "https://dockerproxy.com",
+    "https://hub-mirror.c.163.com",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://registry.docker-cn.com",
+    "https://registry.cn-hangzhou.aliyuncs.com"
+  ]
+}
+
+#设置docker获取配置文件
+nvidia@nvidia-desktop:~$ vi get-docker.sh+
+
+nvidia@nvidia-desktop:~$ lsb_release -a
+
+nvidia@nvidia-desktop:~$ sudo apt update && sudo apt upgrade -y
+
+
+nvidia@nvidia-desktop:~$ echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+nvidia@nvidia-desktop:~$ sudo vi /etc/apt/sources.list.d/docker.list
+#修改配置文件，改为镜像源下载
+nvidia@nvidia-desktop:~$ sudo sed -i 's|https://download.docker.com|https://mirrors.aliyun.com/docker-ce|g' /etc/apt/sources.list.d/docker.list
+nvidia@nvidia-desktop:~$ sudo apt update
+
+#下载docker核心组件
+nvidia@nvidia-desktop:~$ sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+#正确的docker下载配置文件内容
+nvidia@nvidia-desktop:~$ cat /etc/apt/sources.list.d/docker.list
+deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://mirrors.aliyun.com/docker-ce/linux/ubuntu   jammy stable
+
+#安装过程中，发现daemon.json格式不对
+nvidia@nvidia-desktop:~$ python3 -m json.tool /etc/docker/daemon.json
+Expecting ',' delimiter: line 8 column 5 (char 131)
+nvidia@nvidia-desktop:~$ sudo vi /etc/docker/daemon.json
+
+#这时才启动docker成功
+nvidia@nvidia-desktop:~$ sudo systemctl restart docker
+nvidia@nvidia-desktop:~$ systemctl status docker.service
+● docker.service - Docker Application Container Engine
+     Loaded: loaded (/lib/systemd/system/docker.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2025-04-15 17:01:52 CST; 12s ago
+TriggeredBy: ● docker.socket
+       Docs: https://docs.docker.com
+   Main PID: 22502 (dockerd)
+      Tasks: 12
+     Memory: 28.1M
+        CPU: 442ms
+     CGroup: /system.slice/docker.service
+             └─22502 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+
+
+#安装open-webui
+nvidia@nvidia-desktop:~$ sudo docker pull ghcr.io/open-webui/open-webui:main
+nvidia@nvidia-desktop:~$ sudo docker run --network=host -v open-webui:/app/backend/data -e OLLAMA_BASE_URL=http://127.0.0.1:11434 --name open-webui --restart always ghcr.io/open-webui/open-webui:main
+
+
+#安装ragflow，参考文档https://github.com/infiniflow/ragflow/blob/main/README_zh.md，源代码安装方式部分
+nvidia@nvidia-desktop:~$ pip install uv
+nvidia@nvidia-desktop:~$ export UV_INDEX=https://mirrors.aliyun.com/pypi/simple
+nvidia@nvidia-desktop:~$ git clone https://github.com/infiniflow/ragflow.git
+
+nvidia@nvidia-desktop:~$ cd ragflow/
+nvidia@nvidia-desktop:~/ragflow$ uv sync --python 3.10 --all-extras # install RAGFlow dependent python modules
+× Failed to build `graspologic-native==1.2.3`
+
+#build ragflow出错，要安装rust依赖
+nvidia@nvidia-desktop:~/ragflow$ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+info: downloading installer
+Welcome to Rust!
+
+This will download and install the official compiler for the Rust
+programming language, and its package manager, Cargo.
+
+Rust is installed now. Great!
+
+
+nvidia@nvidia-desktop:~/ragflow$ source $HOME/.cargo/env
+
+#继续build
+nvidia@nvidia-desktop:~/ragflow$ uv sync --python 3.10 --all-extras # install RAGFlow dependent python modules
+
+nvidia@nvidia-desktop:~/ragflow$ sudo docker compose -f docker/docker-compose-base.yml up -d
+Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint ragflow-mysql (befe9a722d82ff39fbcf98c4eedc6b6d74f10d7856edc12f9f3d69e12890db23): Unable to enable DIRECT ACCESS FILTERING - DROP rule:  (iptables failed: iptables --wait -t raw -A PREROUTING -p tcp -d 172.18.0.2 --dport 3306 ! -i br-578e284dbbc1 -j DROP: iptables v1.8.7 (legacy): can't initialize iptables table `raw': Table does not exist (do you need to insmod?)
+
+#docker网络配置出错，确定系统内核不支持iptable
+nvidia@nvidia-desktop:~/ragflow$ lsmod | grep nf_conntrack_raw
+nvidia@nvidia-desktop:~/ragflow$ sudo modprobe nf_conntrack_raw
+nvidia@nvidia-desktop:~/ragflow$ lsmod | grep nf_conntrack_raw
+nvidia@nvidia-desktop:~/ragflow$ grep CONFIG_NF_CONNTRACK_RAW /boot/config-$(uname -r)
+grep: /boot/config-5.15.148-tegra: No such file or directory
+
+#设置docker绕过iptable
+nvidia@nvidia-desktop:~/ragflow$ sudo mkdir -p /etc/systemd/system/docker.service.d
+nvidia@nvidia-desktop:~/ragflow$ sudo vi /etc/systemd/system/docker.service.d/override.conf
+nvidia@nvidia-desktop:~/ragflow$ sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+#安装ragflow依赖镜像
+nvidia@nvidia-desktop:~/ragflow$ sudo docker compose -f docker/docker-compose-base.yml up -d
+[+] Running 4/4
+ ✔ Container ragflow-minio  Started                                                                                                                                           0.5s
+ ✔ Container ragflow-mysql  Started                                                                                                                                           0.4s
+ ✔ Container ragflow-redis  Started                                                                                                                                           0.5s
+ ✔ Container ragflow-es-01  Started                                                                                                                                           0.4s
+
+#修改host，基础镜像地址指向127.0.0.1
+nvidia@nvidia-desktop:~/ragflow$ sudo vi /etc/hosts
+nvidia@nvidia-desktop:~/ragflow$ export HF_ENDPOINT=https://hf-mirror.com
+
+
+#安装ragflow后台服务，缺少jemalloc
+nvidia@nvidia-desktop:~/ragflow$ source .venv/bin/activate
+(ragflow) nvidia@nvidia-desktop:~/ragflow$ export PYTHONPATH=$(pwd)
+(ragflow) nvidia@nvidia-desktop:~/ragflow$ bash docker/launch_backend_service.sh
+Loading environment variables from: /home/nvidia/ragflow/docker/.env
+Package jemalloc was not found in the pkg-config search path.
+Perhaps you should add the directory containing `jemalloc.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'jemalloc' found
+
+
+#安装前端
+(ragflow) nvidia@nvidia-desktop:~/ragflow$ cd web
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ npm install
+-bash: npm: command not found
+
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ sudo apt-get update
+
+#需要先安装node等
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ sudo apt-get install -y nodejs npm
+
+#npm太旧，卸载装最新的
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ npm -v
+8.5.1
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ npm install
+npm ERR! code EBADENGINE
+npm ERR! engine Unsupported engine
+npm ERR! engine Not compatible with your version of node/npm: undefined
+npm ERR! notsup Not compatible with your version of node/npm: undefined
+npm ERR! notsup Required: {"node":">=18.20.4"}
+npm ERR! notsup Actual:   {"npm":"8.5.1","node":"v12.22.9"}
+
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ sudo apt remove --purge nodejs npm -y
+
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ sudo apt autoremove -y
+
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ sudo apt install -y curl software-properties-common
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+
+#成功安装新版node
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ sudo apt install -y nodejs
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ node -v
+v18.20.8
+
+
+#安装前端
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ npm install
+        ╔════════════════════════════════════════════════════╗
+        ║ App listening at:                                  ║
+        ║  >   Local: http://localhost:9222                  ║
+ready - ║  > Network: http://192.168.10.150:9222             ║
+        ║                                                    ║
+        ║ Now you can open browser with the above addresses↑ ║
+        ╚════════════════════════════════════════════════════╝
+
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ npm run dev
+
+#修改配置，映射到后端实际的ip和端口
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ sudo vi .umirc.ts
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ npm run dev
+        ╔════════════════════════════════════════════════════╗
+        ║ App listening at:                                  ║
+        ║  >   Local: http://localhost:9222                  ║
+ready - ║  > Network: http://192.168.10.150:9222             ║
+        ║                                                    ║
+        ║ Now you can open browser with the above addresses↑ ║
+        ╚════════════════════════════════════════════════════╝
+
+#发现后端没启动成功
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ sudo netstat -tuln | grep 9380
+(ragflow) nvidia@nvidia-desktop:~/ragflow/web$ cd ..
+(ragflow) nvidia@nvidia-desktop:~/ragflow$ source .venv/bin/activate
+(ragflow) nvidia@nvidia-desktop:~/ragflow$ export PYTHONPATH=$(pwd)
+(ragflow) nvidia@nvidia-desktop:~/ragflow$ bash docker/launch_backend_service.sh
+No package 'jemalloc' found
+
+#解决依赖jemalloc
+(ragflow) nvidia@nvidia-desktop:~/ragflow$ sudo apt install -y libjemalloc-dev
+
+#缺少另一个依赖punkt_tab
+(ragflow) nvidia@nvidia-desktop:~/ragflow$ bash docker/launch_backend_service.sh
+
+AssertionError: Number of devices must be >= 1
+
+
+#手动下载punkt_tab.zip,参考https://blog.csdn.net/iceliooo/article/details/142204897
+#scp到盒子
+scp c:\punkt_tab.zip nvidia@192.168.10.150:/home/nvidia/ragflow/.venv/nltk_data
