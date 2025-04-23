@@ -1,0 +1,18 @@
+# 对dify二次开发后，使用docker进行部署
+
+# 克隆 Dify 项目并进入目录
+git clone https://github.com/langgenius/dify.git
+cd dify
+
+# 然后选择你要修改哪部分代码，比如前端web代码，当代码修改完成后
+cd web
+# 构建修改后前端的镜像
+docker build -t dify-web-custom .
+
+# 修改 docker-compose.yaml 以使用自定义镜像：
+services:
+  web:
+    image: dify-web-custom
+
+# 重新启动 Docker 容器
+docker-compose down && docker-compose up -d
