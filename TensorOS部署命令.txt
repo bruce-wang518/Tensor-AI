@@ -1,1 +1,1 @@
-curl -fsSL http://192.168.19.104:9080/root/tensoros-ui/-/raw/main/install.sh | bash
+curl -fsSL http://192.168.19.104:9080/root/tensoros-ui/-/raw/main/install.sh | sudo bash
