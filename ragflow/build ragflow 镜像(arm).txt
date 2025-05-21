@@ -1,0 +1,184 @@
+#########参考文档 https://github.com/infiniflow/ragflow/blob/main/docs/develop/build_docker_image.mdx
+
+#设置vm.max_map_count
+sudo sysctl -w vm.max_map_count=262144
+
+#如果永久设置
+sudo nano /etc/sysctl.conf
+#末尾添加
+vm.max_map_count=262144  
+
+
+linaro@sophon:/data$ cd ragflow
+linaro@sophon:/data/ragflow$ ls
+9b5ad71b2ce5302211f9c61530b329a4922fc6a4  README_ja.md       api               flask_session      pyproject.toml
+CONTRIBUTING.md                           README_ko.md       conf              graphrag           rag
+Dockerfile                                README_pt_br.md    corpora           helm               sdk
+Dockerfile.deps                           README_tzh.md      deepdoc           intergrations      show_env.sh
+Dockerfile.scratch.oc9                    README_zh.md       docker            logs               uv.lock
+LICENSE                                   SECURITY.md        docs              mcp                web
+README.md                                 agent              download_deps.py  package-lock.json  wordnet.zip
+README_id.md                              agentic_reasoning  example           punkt_tab.zip
+
+# 安装unixodbc驱动，arm架构额外需要
+linaro@sophon:/data/ragflow$ sudo apt-get update
+linaro@sophon:/data/ragflow$ sudo apt-get install unixodbc unixodbc-dev
+
+linaro@sophon:/data/ragflow$ sudo apt-get install odbcinst
+# 确认安装成功odbcinst，有些情况下unixodbc包含了odbcinst，无需额外安装
+linaro@sophon:/data/ragflow$ odbcinst -j
+unixODBC 2.3.9
+
+#下载需要的文件，报huggface下载错误
+linaro@sophon:/data/ragflow$ uv run download_deps.py
+Installed 17 packages in 60ms
+Downloading http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb...
+Downloading http://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_arm64.deb...
+Downloading https://repo1.maven.org/maven2/org/apache/tika/tika-server-standard/3.0.0/tika-server-standard-3.0.0.jar...
+Downloading https://repo1.maven.org/maven2/org/apache/tika/tika-server-standard/3.0.0/tika-server-standard-3.0.0.jar.md5...
+Downloading https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken...
+Downloading https://bit.ly/chrome-linux64-121-0-6167-85...
+Downloading https://bit.ly/chromedriver-linux64-121-0-6167-85...
+Downloading nltk wordnet...
+[nltk_data] Error loading wordnet: <urlopen error [Errno 111]
+[nltk_data]     Connection refused>
+Downloading nltk punkt...
+[nltk_data] Error loading punkt: <urlopen error [Errno 111] Connection
+[nltk_data]     refused>
+Downloading nltk punkt_tab...
+[nltk_data] Error loading punkt_tab: <urlopen error [Errno 111]
+[nltk_data]     Connection refused>
+Downloading huggingface repo InfiniFlow/text_concat_xgb_v1.0...
+Traceback (most recent call last):
+  File "/home/linaro/.cache/uv/environments-v2/download-deps-63f29270820d6ea1/lib/python3.10/site-packages/urllib3/connection.py", line 198, in _new_conn
+    sock = connection.create_connection(
+  File "/home/linaro/.cache/uv/environments-v2/download-deps-63f29270820d6ea1/lib/python3.10/site-packages/urllib3/util/connection.py", line 85, in create_connection
+    raise err
+  File "/home/linaro/.cache/uv/environments-v2/download-deps-63f29270820d6ea1/lib/python3.10/site-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+OSError: [Errno 101] Network is unreachable
+
+# 设置镜像源
+linaro@sophon:/data/ragflow$ export HF_ENDPOINT=https://hf-mirror.com
+
+
+#如果uv没有安装，先安装
+linaro@sophon:/data/ragflow$ curl -LsSf https://astral.sh/uv/install.sh | sh
+
+#使用大陆镜像下载
+linaro@sophon:/data/ragflow$ uv run download_deps.py --china-mirrors
+
+
+Downloading huggingface repo InfiniFlow/text_concat_xgb_v1.0...
+/home/linaro/.cache/uv/environments-v2/download-deps-63f29270820d6ea1/lib/python3.10/site-packages/huggingface_hub/file_download.py:933: UserWarning: `local_dir_use_symlinks` parameter is deprecated and will be ignored. The process to download files to a local folder has been updated and do not rely on symlinks anymore. You only need to pass a destination folder as`local_dir`.
+For more details, check out https://huggingface.co/docs/huggingface_hub/main/en/guides/download#download-files-to-local-folder.
+  warnings.warn(
+README.md: 100%|████████████████████████████████████████████████████████████████████████| 307/307 [00:00<00:00, 571kB/s]
+.gitattributes: 1.52kB [00:00, 2.44MB/s]
+updown_concat_xgb.model: 100%|█████████████████████████████████████████████████████| 5.91M/5.91M [00:01<00:00, 2.99MB/s]
+Fetching 3 files: 100%|███████████████████████████████████████████████████████████████████| 3/3 [00:03<00:00,  1.00s/it]
+Downloading huggingface repo InfiniFlow/deepdoc...
+.gitattributes: 1.52kB [00:00, 1.60MB/s]
+ocr.res: 26.2kB [00:00, 794kB/s]                                                         | 1/10 [00:00<00:04,  1.97it/s]
+README.md: 100%|████████████████████████████████████████████████████████████████████████| 119/119 [00:00<00:00, 240kB/s]
+rec.onnx: 100%|████████████████████████████████████████████████████████████████████| 10.8M/10.8M [00:02<00:00, 4.14MB/s]
+det.onnx: 100%|████████████████████████████████████████████████████████████████████| 4.75M/4.75M [00:04<00:00, 1.17MB/s]
+tsr.onnx: 100%|████████████████████████████████████████████████████████████████████| 12.2M/12.2M [00:06<00:00, 1.95MB/s]
+layout.onnx:  14%|█████████                                                        | 10.5M/75.7M [00:05<00:34, 1.90MB/sError while downloading from https://cdn-lfs-us-1.hf-mirror.com/repos/36/ed/36ed44fea0a7495cb21616f6b54c47daf06b270e5617730fd54b67f1864aac6f/de401c03ee30b1c120416dc06f0705237f0c36d3cdb692c9bfefe8a8f98a4b70?response-content-disposition=inline%3B+filename*%3DUTF-8%27%27layout.laws.onnx%3B+filename%3D%22layout.laws.onnx%22%3B&Expires=1745814506&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc0NTgxNDUwNn19LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2RuLWxmcy11cy0xLmhmLmNvL3JlcG9zLzM2L2VkLzM2ZWQ0NGZlYTBhNzQ5NWNiMjE2MTZmNmI1NGM0N2RhZjA2YjI3MGU1NjE3NzMwZmQ1NGI2N2YxODY0YWFjNmYvZGU0MDFjMDNlZTMwYjFjMTIwNDE2ZGMwNmYwNzA1MjM3ZjBjMzZkM2NkYjY5MmM5YmZlZmU4YThmOThhNGI3MD9yZXNwb25zZS1jb250ZW50LWRpc3Bvc2l0aW9uPSoifV19&Signature=PzUU%7EtVIGARUJFTU-Sm5Hw7Eb2Lh5YrxkEsix3deeQ9FmcOn1HGBgMbiQ1DcYZWQRewKrV-SSlj4M7lME-dzAYrPpJA4tKIt%7EBaEk%7EiXcUenHBZ8hzcbpzl1MGJGgmdVUV0vOo%7EdSZwuyQBTab5wqGFeC0kc8JwpjEETPfeuOFx3JqUczUp6mJkhHMU7cSBHasxrui83kDMgsFeZ%7EEolvdkQ8hKnIK1hwhJEl6wTpKn-ELHr7tD9ZcyDfsRRVB6BzGv%7EXnrg5KHNDcmVonk4VWaP5o95YfK6IG5p0wktIzh2klXlzUdfhN9xfad%7E1soneJFDiSBCP7us-9lMkTc6Iw__&Key-Pair-Id=K24J24Z295AEI9: HTTPSConnectionPool(host='cdn-lfs-us-1.hf-mirror.com', port=443): Read timed out.
+Trying to resume download...
+layout.manual.onnx: 100%|██████████████████████████████████████████████████████████| 75.7M/75.7M [00:20<00:00, 3.71MB/s]
+layout.onnx: 100%|█████████████████████████████████████████████████████████████████| 75.7M/75.7M [00:27<00:00, 2.73MB/s]
+layout.laws.onnx: 100%|████████████████████████████████████████████████████████████| 75.7M/75.7M [00:11<00:00, 5.62MB/s]
+layout.laws.onnx:  14%|████████▍                                                    | 10.5M/75.7M [00:32<03:19, 327kB/s]
+layout.paper.onnx: 100%|███████████████████████████████████████████████████████████| 75.7M/75.7M [00:42<00:00, 1.76MB/s]
+Fetching 10 files: 100%|████████████████████████████████████████████████████████████████| 10/10 [00:44<00:00,  4.45s/it]
+Downloading huggingface repo InfiniFlow/huqie...
+.gitattributes: 1.62kB [00:00, 2.26MB/s]
+README.md: 100%|█████████████████████████████████████████████████████████████████████| 28.0/28.0 [00:00<00:00, 57.3kB/s]
+huqie.txt: 12.6MB [00:01, 7.06MB/s]                                                          | 0.00/28.0 [00:00<?, ?B/s]
+huqie.txt.trie: 100%|██████████████████████████████████████████████████████████████| 71.3M/71.3M [00:09<00:00, 7.50MB/s]
+Fetching 4 files: 100%|███████████████████████████████████████████████████████████████████| 4/4 [00:10<00:00,  2.67s/it]
+Downloading huggingface repo BAAI/bge-large-zh-v1.5...
+.gitattributes: 1.52kB [00:00, 2.45MB/s]
+modules.json: 100%|█████████████████████████████████████████████████████████████████████| 349/349 [00:00<00:00, 721kB/s]
+README.md: 30.4kB [00:00, 5.27MB/s]                                                           | 0.00/349 [00:00<?, ?B/s]
+config.json: 100%|██████████████████████████████████████████████████████████████████████| 191/191 [00:00<00:00, 343kB/s]
+config_sentence_transformers.json: 100%|████████████████████████████████████████████████| 124/124 [00:00<00:00, 233kB/s]
+sentence_bert_config.json: 100%|██████████████████████████████████████████████████████| 52.0/52.0 [00:00<00:00, 105kB/s]
+config.json: 1.00kB [00:00, 1.64MB/s]
+special_tokens_map.json: 100%|██████████████████████████████████████████████████████████| 125/125 [00:00<00:00, 220kB/s]
+tokenizer.json: 439kB [00:00, 2.91MB/s]
+tokenizer_config.json: 100%|████████████████████████████████████████████████████████████| 394/394 [00:00<00:00, 593kB/s]
+vocab.txt: 110kB [00:00, 550kB/s]                                                             | 0.00/125 [00:00<?, ?B/s]
+pytorch_model.bin: 100%|███████████████████████████████████████████████████████████| 1.30G/1.30G [02:17<00:00, 9.49MB/s]
+Fetching 12 files: 100%|████████████████████████████████████████████████████████████████| 12/12 [02:18<00:00, 11.51s/it]
+Downloading huggingface repo maidalun1020/bce-embedding-base_v1...█████████████████| 1.30G/1.30G [02:17<00:00, 9.28MB/s]
+config_sentence_transformers.json: 100%|████████████████████████████████████████████████| 117/117 [00:00<00:00, 236kB/s]
+config.json: 741B [00:00, 988kB/s]
+Wechat.jpg: 100%|████████████████████████████████████████████████████████████████████| 180k/180k [00:00<00:00, 3.76MB/s]
+config.json: 100%|██████████████████████████████████████████████████████████████████████| 190/190 [00:00<00:00, 342kB/s]
+README.md: 36.5kB [00:00, 3.41MB/s]
+modules.json: 100%|█████████████████████████████████████████████████████████████████████| 349/349 [00:00<00:00, 600kB/s]
+.gitattributes: 1.65kB [00:00, 2.29MB/s]
+sentence_bert_config.json: 100%|█████████████████████████████████████████████████████| 53.0/53.0 [00:00<00:00, 88.8kB/s]
+tokenizer_config.json: 1.17kB [00:00, 1.67MB/s]
+special_tokens_map.json: 100%|██████████████████████████████████████████████████████████| 280/280 [00:00<00:00, 574kB/s]
+tokenizer.json: 17.1MB [00:01, 8.89MB/s]                                                      | 0.00/280 [00:00<?, ?B/s]
+sentencepiece.bpe.model: 100%|█████████████████████████████████████████████████████| 5.07M/5.07M [00:02<00:00, 2.11MB/s]
+rag_eval_multiple_domains_summary.jpg: 100%|████████████████████████████████████████| 2.02M/2.02M [00:02<00:00, 705kB/s]
+pytorch_model.bin: 100%|███████████████████████████████████████████████████████████| 1.11G/1.11G [02:02<00:00, 9.09MB/s]
+Fetching 14 files: 100%|████████████████████████████████████████████████████████████████| 14/14 [02:03<00:00,  8.84s/it]
+
+#build 基础镜像
+
+linaro@sophon:/data/ragflow$ ls
+9b5ad71b2ce5302211f9c61530b329a4922fc6a4  api                                 libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+CONTRIBUTING.md                           chrome-linux64-121-0-6167-85        libssl1.1_1.1.1f-1ubuntu2_arm64.deb
+Dockerfile                                chromedriver-linux64-121-0-6167-85  logs
+Dockerfile.deps                           cl100k_base.tiktoken                mcp
+Dockerfile.scratch.oc9                    conf                                package-lock.json
+LICENSE                                   corpora                             punkt_tab.zip
+README.md                                 deepdoc                             pyproject.toml
+README_id.md                              docker                              rag
+README_ja.md                              docs                                sdk
+README_ko.md                              download_deps.py                    show_env.sh
+README_pt_br.md                           example                             tika-server-standard-3.0.0.jar
+README_tzh.md                             flask_session                       tika-server-standard-3.0.0.jar.md5
+README_zh.md                              graphrag                            uv.lock
+SECURITY.md                               helm                                web
+agent                                     huggingface.co                      wordnet.zip
+agentic_reasoning                         intergrations
+
+
+vi Dockerfile.deps #把chromedriver-linux64-121-0-6167-85 chrome-linux64-121-0-6167-85 替换成 chrome-linux64.zip chromedriver-linux64.zip  
+ 
+linaro@sophon:/data/ragflow$ docker build -f Dockerfile.deps -t infiniflow/ragflow_deps .
+Successfully tagged infiniflow/ragflow_deps:latest
+
+
+#build 应用镜像
+vi Dockerfile #把# Add dependencies of selenium 部分里的chrome-linux64-121-0-6167-85 替换成 chrome-linux64.zip；chromedriver-linux64-121-0-6167-85替换成chromedriver-linux64.zip 
+
+DOCKER_BUILDKIT=1，不然报错，另外设置NEED_MIRROR=1，启用镜像源下载
+linaro@sophon:/data/ragflow$ DOCKER_BUILDKIT=1 docker build --build-arg NEED_MIRROR=1 -f Dockerfile -t infiniflow/ragflow:nightly .
+
+
+
+#运行docker前，修改docker-compose.yml ragflow image
+#image: infiniflow/ragflow:nightly
+
+#nvidia盒子设置docker绕过iptable
+nvidia@nvidia-desktop:~/ragflow$ sudo mkdir -p /etc/systemd/system/docker.service.d
+nvidia@nvidia-desktop:~/ragflow$ sudo vi /etc/systemd/system/docker.service.d/override.conf
+#内容
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --iptables=false
+
+nvidia@nvidia-desktop:~/ragflow$ sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+
+
+sudo docker compose -f docker/docker-compose.yml up -d
+
