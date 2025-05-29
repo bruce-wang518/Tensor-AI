@@ -1,0 +1,759 @@
+<><!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>腾视科技知识库智能助手</title>
+        <style>
+            :root {
+                --neon-blue: #00F7FF;
+                --dark-bg: #0F172A;
+                --content-bg: rgba(255, 255, 255, 0.05);
+                --border-color: rgba(255, 255, 255, 0.15);
+            }
+
+            body {
+                margin: 0;
+                padding: 20px;
+                font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+                color: #fff;
+                background: var(--dark-bg);
+                min-height: 100vh;
+            }
+
+            .header-container {
+                max-width: 1200px;
+                margin: 0 auto 30px;
+            }
+
+            .title-tabs-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 40px;
+            }
+
+            .header-title {
+                background: linear-gradient(45deg, #00F7FF, #0066FF);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                font-weight: 700;
+                font-size: 28px;
+                text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+                white-space: nowrap;
+            }
+
+            .tabs {
+                display: flex;
+                gap: 12px;
+                background: rgba(255, 255, 255, 0.1);
+                padding: 6px;
+                border-radius: 8px;
+                backdrop-filter: blur(5px);
+            }
+
+            .tab-item {
+                padding: 8px 20px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                background: transparent;
+                color: rgba(255, 255, 255, 0.7);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                font-size: 14px;
+            }
+
+            .tab-item.active {
+                background: #0084ff;
+                color: white;
+                border-color: #0084ff;
+                box-shadow: 0 2px 8px rgba(0, 132, 255, 0.3);
+            }
+
+            .container {
+                display: flex;
+                gap: 20px;
+                height: calc(100vh - 160px);
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .sidebar {
+                width: 300px;
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                background: var(--content-bg);
+                padding: 15px;
+                backdrop-filter: blur(10px);
+            }
+
+            .session-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .session-actions {
+                display: flex;
+                gap: 10px;
+            }
+
+            .session-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                overflow-y: auto;
+                height: calc(100% - 60px);
+            }
+
+            .session-item {
+                padding: 12px;
+                cursor: pointer;
+                border-radius: 8px;
+                margin: 5px 0;
+                transition: all 0.3s ease;
+                color: rgba(255, 255, 255, 0.8);
+                background: rgba(255, 255, 255, 0.05);
+                font-size: 14px;
+            }
+
+            .session-item:hover {
+                background: rgba(0, 132, 255, 0.1);
+            }
+
+            .session-item.selected {
+                background: rgba(0, 132, 255, 0.2);
+                font-weight: 500;
+            }
+
+            .main {
+                flex: 1;
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                display: flex;
+                flex-direction: column;
+                background: var(--content-bg);
+                backdrop-filter: blur(10px);
+            }
+
+            .chat-history {
+                flex: 1;
+                overflow-y: auto;
+                padding: 20px;
+                scroll-behavior: smooth;
+            }
+
+            .message {
+                display: flex;
+                margin-bottom: 20px;
+                animation: messageAppear 0.3s ease-out;
+            }
+
+            .assistant {
+                justify-content: flex-start;
+            }
+
+            .user {
+                justify-content: flex-end;
+            }
+
+            .message-content {
+                max-width: 70%;
+                padding: 16px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid var(--border-color);
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 14px;
+                line-height: 1.6;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
+            .user .message-content {
+                background: rgba(0, 132, 255, 0.3);
+                border-color: rgba(0, 132, 255, 0.5);
+            }
+
+            .md-content {
+                font-family: inherit;
+            }
+
+            .md-content h3 {
+                font-size: 16px;
+                color: #00F7FF;
+                margin: 15px 0 10px;
+                padding-bottom: 3px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .md-content h4 {
+                font-size: 14px;
+                color: #80dfff;
+                margin: 12px 0 8px;
+            }
+
+            .md-content ul,
+            .md-content ol {
+                margin: 8px 0;
+                padding-left: 25px;
+            }
+
+            .md-content li {
+                margin: 6px 0;
+                position: relative;
+            }
+
+            .md-content li::before {
+                content: "•";
+                color: #00F7FF;
+                position: absolute;
+                left: -15px;
+            }
+
+            .md-content p {
+                margin: 8px 0;
+            }
+
+            .reference-badge {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.6);
+                margin: 10px 0 0;
+                padding: 8px 12px;
+                background: rgba(0, 247, 255, 0.1);
+                border-radius: 6px;
+                line-height: 1.4;
+                text-align: left;
+            }
+
+            .reference-badge a {
+                display: block;
+                color: var(--neon-blue) !important;
+                text-decoration: none;
+                margin: 4px 0;
+                padding: 4px 0;
+                border-bottom: 1px solid rgba(0, 247, 255, 0.3);
+                transition: all 0.2s ease;
+                max-width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .reference-badge a:hover {
+                border-bottom-color: var(--neon-blue);
+            }
+
+            .role-icon {
+                font-size: 18px;
+                margin-right: 8px;
+                vertical-align: middle;
+            }
+
+            .input-area {
+                padding: 20px;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .input-wrapper {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+
+            textarea {
+                flex: 1;
+                height: 60px;
+                padding: 12px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                resize: vertical;
+                background: rgba(255, 255, 255, 0.03);
+                color: #fff;
+                font-size: 14px;
+            }
+
+            button {
+                background: #0084ff;
+                color: white;
+                border: none;
+                padding: 8px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            button:hover:not(:disabled) {
+                background: #0069d9;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 132, 255, 0.3);
+            }
+
+            button:disabled {
+                background: rgba(255, 255, 255, 0.1);
+                cursor: not-allowed;
+            }
+
+            @keyframes messageAppear {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* 流式加载动画 */
+            .streaming-cursor::after {
+                content: '▋';
+                animation: cursorBlink 1s infinite;
+                color: var(--neon-blue);
+                margin-left: 2px;
+            }
+
+            @keyframes cursorBlink {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0;
+                }
+            }
+        </style>
+    </head>
+    <body>
+    <div class="header-container">
+        <div class="title-tabs-wrapper">
+            <div class="header-title">腾视科技知识库智能助手</div>
+            <div class="tabs">
+                <div class="tab-item active" data-value="process" onclick="switchTab('process')">流程规范</div>
+                <div class="tab-item" data-value="product" onclick="switchTab('product')">产品技术</div>
+                <div class="tab-item" data-value="data" onclick="switchTab('data')">业务数据</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="session-header">
+                <h3 style="color: rgba(255,255,255,0.9); margin: 0">对话列表</h3>
+                <div class="session-actions">
+                    <button onclick="deleteSession()">删除</button>
+                    <button onclick="createSession()">新建对话</button>
+                </div>
+            </div>
+            <ul class="session-list" id="sessionList"></ul>
+        </div>
+
+        <div class="main">
+            <div class="chat-history" id="chatHistory"></div>
+            <div class="input-area">
+                <div class="input-wrapper">
+                <textarea
+                        id="messageInput"
+                        placeholder="请输入您的问题（支持换行输入）"
+                        onkeydown="handleKeyDown(event)"
+                ></textarea>
+                    <button id="sendButton" onclick="sendMessage()" disabled>发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedSessionId = null;
+        let currentTab = 'process';
+        const sendButton = document.getElementById('sendButton');
+        const messageInput = document.getElementById('messageInput');
+
+        // 新增流式处理状态
+        let isStreaming = false;
+        let streamBuffer = '';
+        const streamingReferences = new Map();
+
+        // 初始化事件监听（保持原样）
+        document.addEventListener('DOMContentLoaded', () => {
+            messageInput.addEventListener('input', updateSendButtonState);
+            loadSessions();
+        });
+
+        // 切换标签页（保持原样）
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.value === tab);
+            });
+            selectedSessionId = null;
+            document.getElementById('chatHistory').innerHTML = '';
+            loadSessions();
+            updateSendButtonState();
+        }
+
+        // 获取请求头（保持原样）
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'tab': currentTab.toLowerCase()
+            };
+        }
+
+        // 更新发送按钮（增加流式状态判断）
+        function updateSendButtonState() {
+            sendButton.disabled = !(messageInput.value.trim() && selectedSessionId) || isStreaming;
+        }
+
+        // 加载会话列表（保持原样）
+        function loadSessions() {
+            fetch('/api/sessions', {
+                headers: getHeaders()
+            })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(sessions => {
+                    const list = document.getElementById('sessionList');
+                    list.innerHTML = sessions.map(session => `
+                    <li class="session-item"
+                        data-id="${session.id}"
+                        onclick="selectSession('${session.id}', this)">
+                        ${session.name}
+                    </li>
+                `).join('');
+                })
+                .catch(() => alert('会话加载失败，请刷新页面重试'));
+        }
+
+        // 选择会话（保持原样）
+        function selectSession(sessionId, element) {
+            selectedSessionId = sessionId;
+            document.querySelectorAll('.session-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            updateSendButtonState();
+
+            fetch(`/api/messages?sessionId=${sessionId}`, {
+                headers: getHeaders()
+            })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(messages => {
+                    const history = document.getElementById('chatHistory');
+                    history.innerHTML = '';
+                    messages.forEach(msg => appendMessage(msg));
+                })
+                .catch(() => alert('消息加载失败，请稍后重试'));
+        }
+
+        // 创建新会话（保持原样）
+        function createSession() {
+            const name = prompt('请输入新对话名称：');
+            if (name) {
+                fetch('/api/sessions', {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({name})
+                }).then(loadSessions).catch(() => alert('创建会话失败'));
+            }
+        }
+
+        // 删除会话（保持原样）
+        function deleteSession() {
+            if (selectedSessionId && confirm('确定要删除当前对话吗？')) {
+                fetch('/api/sessions', {
+                    method: 'DELETE',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ids: [selectedSessionId]})
+                }).then(() => {
+                    selectedSessionId = null;
+                    loadSessions();
+                    document.getElementById('chatHistory').innerHTML = '';
+                    updateSendButtonState();
+                }).catch(() => alert('删除失败'));
+            }
+        }
+
+        // 完整替换后的方法
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || !selectedSessionId || isStreaming) return;
+
+            try {
+                isStreaming = true;
+                sendButton.disabled = true;
+                messageInput.value = '';
+                streamBuffer = '';
+                streamingReferences.clear();
+
+                // 添加用户消息（保持原样）
+                appendMessage({
+                    role: 'user',
+                    content: message,
+                    reference: null
+                });
+
+                // 创建消息容器（保持原样）
+                const aiMessage = createStreamingMessage();
+                let accumulatedContent = '';
+
+                // 发起流式请求（保持原样）
+                const response = await fetch('/api/messages/stream', {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        sessionId: selectedSessionId,
+                        message: message
+                    })
+                });
+
+                // ================= 核心修改开始 =================
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    streamBuffer += decoder.decode(value, { stream: true });
+
+                    // 新增多事件块处理逻辑
+                    while (streamBuffer.includes('\n\n')) {
+                        const eventEndIndex = streamBuffer.indexOf('\n\n');
+                        const eventChunk = streamBuffer.slice(0, eventEndIndex);
+                        streamBuffer = streamBuffer.slice(eventEndIndex + 2);
+
+                        // 增强事件解析
+                        eventChunk.split('\n').forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const event = JSON.parse(line.slice(6));
+                                    if (event.code === 0) {
+                                        accumulatedContent += event.data.answer || '';
+
+                                        // 新增参考文档处理
+                                        if (event.data.reference?.doc_aggs) {
+                                            event.data.reference.doc_aggs.forEach(doc => {
+                                                const key = `${doc.doc_id}_${doc.doc_name}`;
+                                                streamingReferences.set(key, {
+                                                    title: decodeURIComponent(doc.doc_name),
+                                                    url: `/document/${doc.doc_id}?name=${encodeURIComponent(doc.doc_name)}`
+                                                });
+                                            });
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('SSE解析错误:', e, '原始数据:', line);
+                                }
+                            }
+                        });
+                    }
+
+                    // 保持原有的节流更新
+                    throttleUpdateContent(aiMessage, accumulatedContent);
+                }
+                // ================= 核心修改结束 =================
+
+                // 最终处理（保持原样）
+                finalizeStreamMessage(aiMessage, accumulatedContent);
+
+            } catch (error) {
+                appendMessage({
+                    role: 'system',
+                    content: '请求失败: ' + error.message,
+                    reference: null
+                });
+            } finally {
+                isStreaming = false;
+                sendButton.disabled = false;
+                scrollToBottom();
+            }
+        }
+        // 流式事件处理
+        function processStreamEvent(event, container, accumulatedContent) {
+            if (event.code !== 0 || !event.data) return;
+
+            // 内容更新
+            if (event.data.answer) {
+                accumulatedContent += event.data.answer;
+                throttleUpdateContent(container, accumulatedContent);
+            }
+
+            // 参考文档处理
+            if (event.data.reference?.doc_aggs) {
+                event.data.reference.doc_aggs.forEach(doc => {
+                    const key = `${doc.doc_id}_${doc.doc_name}`;
+                    streamingReferences.set(key, {
+                        title: decodeURIComponent(doc.doc_name),
+                        url: `/document/${doc.doc_id}?name=${encodeURIComponent(doc.doc_name)}`
+                    });
+                });
+            }
+        }
+
+        // 创建消息容器（保持DOM结构）
+        function createStreamingMessage() {
+            const history = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            messageDiv.innerHTML = `
+            <div class="message-content">
+                <span class="role-icon">🤖</span>
+                <div class="md-content streaming-content"></div>
+                <div class="reference-badge" style="display:none"></div>
+            </div>
+        `;
+            history.appendChild(messageDiv);
+            scrollToBottom();
+            return messageDiv;
+        }
+
+        // 节流更新内容（300ms间隔）
+        const throttleUpdateContent = throttle((container, content) => {
+            const contentDiv = container.querySelector('.streaming-content');
+            contentDiv.innerHTML = formatMessageContent(content) + '<span class="streaming-cursor"></span>';
+            scrollToBottom('smooth');
+        }, 300);
+
+        // 完整替换后的方法
+        function finalizeStreamMessage(container, content) {
+            // 保持原有DOM查询
+            const contentDiv = container.querySelector('.streaming-content');
+            const refDiv = container.querySelector('.reference-badge');
+
+            // ================= 新增清理逻辑 =================
+            // 清理流式光标
+            contentDiv.querySelectorAll('.streaming-cursor').forEach(c => c.remove());
+
+            // 保持内容更新
+            contentDiv.innerHTML = formatMessageContent(content);
+
+            // 增强参考文档显示
+            if (streamingReferences.size > 0) {
+                refDiv.style.display = 'block';
+                refDiv.innerHTML = `
+            <div>参考文档：</div>
+            ${Array.from(streamingReferences.values()).map(doc =>
+                    `<a href="${doc.url}" target="_blank">${doc.title}</a>`
+                ).join('')}
+        `;
+            }
+        }
+        // 完整替换后的方法
+        function formatMessageContent(text) {
+            // 保留原始清理逻辑
+            let formatted = text.replace(/##\d+\$\$/g, '');
+
+            // ================= 新增表格解析 =================
+            formatted = formatted.replace(/(\|.*\|)\n(\|-+\|)\n((\|.*\|\n)+)/g, (m, h, s, r) => {
+                return `<table class="markdown-table">${processTable(h, r)}</table>`;
+            });
+
+            // 保持原有替换逻辑
+            formatted = formatted
+                .replace(/^###\s+(.+)(\n|$)/gm, '<h3>$1</h3>')
+                .replace(/^##\s+(.+)(\n|$)/gm, '<h4>$1</h4>')
+                .replace(/^(\d+)\.\s(.+)(\n|$)/gm, '<li class="ordered">$1. $2</li>')
+                .replace(/^-\s(.+)(\n|$)/gm, '<li class="unordered">$1</li>')
+                .replace(/\n{2,}/g, '</p><p>')
+                .replace(/^(.+)(\n|$)/gm, '<p>$1</p>');
+
+            // 新增Markdown加粗支持
+            formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+            return formatted;
+        }
+
+        // 新增表格处理方法（放在formatMessageContent之后）
+        function processTable(header, rows) {
+            return `
+        <thead>
+            <tr>${
+                header.split('|')
+                    .slice(1, -1)
+                    .map(c => `<th>${c.trim()}</th>`)
+                    .join('')
+            }</tr>
+        </thead>
+        <tbody>${
+                rows.split('\n')
+                    .map(row => `
+                <tr>${
+                            row.split('|')
+                                .slice(1, -1)
+                                .map(c => `<td>${c.trim()}</td>`)
+                                .join('')
+                        }</tr>`
+                    ).join('')
+            }</tbody>
+    `;
+        }
+
+        // 添加消息（保持原样）
+        function appendMessage(msg) {
+            const history = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${msg.role}`;
+
+            const formattedContent = formatMessageContent(msg.content);
+            let referenceLinks = '';
+
+            if (msg.reference) {
+                referenceLinks = msg.reference.split(',').map(pair => {
+                    const [title, url] = pair.split('|');
+                    return `<a href="${url}" target="_blank">${decodeURIComponent(title)}</a>`;
+                }).join('');
+            }
+
+            messageDiv.innerHTML = `
+            <div class="message-content">
+                <span class="role-icon">${msg.role === 'assistant' ? '🤖' : '👤'}</span>
+                <div class="md-content">${formattedContent}</div>
+                ${referenceLinks ? `
+                    <div class="reference-badge">
+                        <div>参考文档：</div>
+                        ${referenceLinks}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+            history.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // 滚动控制（增强平滑滚动）
+        function scrollToBottom(behavior = 'auto') {
+            const history = document.getElementById('chatHistory');
+            requestAnimationFrame(() => {
+                history.scrollTo({
+                    top: history.scrollHeight,
+                    behavior: behavior
+                });
+            });
+        }
+
+        // 节流函数
+        function throttle(fn, delay) {
+            let lastCall = 0;
+            return (...args) => {
+                const now = Date.now();
+                if (now - lastCall >= delay) {
+                    fn(...args);
+                    lastCall = now;
+                }
+            }
+        }
+
+        // 回车处理（保持原样）
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+    </script>
+    </body>
+    </html>
+</>

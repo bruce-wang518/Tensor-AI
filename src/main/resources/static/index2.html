@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>腾视科技知识库智能助手</title>
+    <style>
+        /* 颜色系统（精确匹配图片） */
+        :root {
+            --dark-blue: #0F172A;      /* 深蓝背景色 */
+            --border-blue: #00F7FF;   /* 浅蓝边框 */
+            --icon-purple: #8A2BE2;   /* 紫色图标 */
+            --pure-white: #FFFFFF;    /* 纯白文字 */
+        }
+
+        /* 全局样式 */
+        body {
+            margin: 0;
+            padding: 20px;
+            background: var(--dark-blue);
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+            color: var(--pure-white);
+            min-height: 100vh;
+        }
+
+        /* 消息容器（精确还原图片布局） */
+        .message-container {
+            width: 320px;             /* 匹配图片比例 */
+            margin: 40px auto;        /* 居中显示 */
+            border: 2px solid var(--border-blue);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* 图标样式（像素级还原） */
+        .inquiry-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--icon-purple);
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15H9v-6h1v6zm5 0h-1v-6h1v6z"/></svg>');
+            margin: 0 auto 16px;       /* 下间距16px */
+        }
+
+        /* 文本内容（精确字体渲染） */
+        .inquiry-text {
+            font-size: 18px;
+            line-height: 1.3;
+            text-align: center;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+        }
+
+        /* 原有界面组件（保持完整结构） */
+        .header-container {
+            /* 原有头部样式保持不变 */
+            border-bottom: 1px solid var(--border-blue);
+        }
+
+        .sidebar {
+            /* 原有侧边栏样式 */
+            border-right: 1px solid var(--border-blue);
+        }
+
+        .chat-input {
+            /* 输入框匹配图片风格 */
+            border: 1px solid var(--border-blue);
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* 动画效果（保持一致性） */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+</head>
+<body>
+<div class="header-container">
+    <div class="title-tabs-wrapper">
+        <div class="header-title">腾视科技知识库智能助手</div>
+        <div class="tabs">
+            <div class="tab-item active" data-value="process" onclick="switchTab('process')">流程规范</div>
+            <div class="tab-item" data-value="product" onclick="switchTab('product')">产品技术</div>
+            <div class="tab-item" data-value="data" onclick="switchTab('data')">业务数据</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="session-header">
+            <h3 style="color: rgba(255,255,255,0.9); margin: 0">对话列表</h3>
+            <div class="session-actions">
+                <button onclick="deleteSession()">删除</button>
+                <button onclick="createSession()">新建对话</button>
+            </div>
+        </div>
+        <ul class="session-list" id="sessionList"></ul>
+    </div>
+
+    <div class="main">
+        <div class="chat-history" id="chatHistory"></div>
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea
+                        id="messageInput"
+                        placeholder="请输入您的问题（支持换行输入）"
+                        onkeydown="handleKeyDown(event)"
+                ></textarea>
+                <button id="sendButton" onclick="sendMessage()" disabled>发送</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 完整JavaScript逻辑
+    let selectedSessionId = null;
+    let currentTab = 'process';
+    const sendButton = document.getElementById('sendButton');
+    const messageInput = document.getElementById('messageInput');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        messageInput.addEventListener('input', updateSendButtonState);
+        loadSessions();
+    });
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.value === tab);
+        });
+        selectedSessionId = null;
+        document.getElementById('chatHistory').innerHTML = '';
+        loadSessions();
+        updateSendButtonState();
+    }
+
+    function getHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'tab': currentTab.toLowerCase()
+        };
+    }
+
+    function updateSendButtonState() {
+        sendButton.disabled = !(messageInput.value.trim() && selectedSessionId);
+    }
+
+    function loadSessions() {
+        fetch('/api/sessions', {
+            headers: getHeaders()
+        })
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(sessions => {
+                const list = document.getElementById('sessionList');
+                list.innerHTML = sessions.map(session => `
+                <li class="session-item"
+                    data-id="${session.id}"
+                    onclick="selectSession('${session.id}', this)">
+                    ${session.name}
+                </li>
+            `).join('');
+            })
+            .catch(() => alert('会话加载失败，请刷新页面重试'));
+    }
+
+    function selectSession(sessionId, element) {
+        selectedSessionId = sessionId;
+        document.querySelectorAll('.session-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        updateSendButtonState();
+
+        fetch(`/api/messages?sessionId=${sessionId}`, {
+            headers: getHeaders()
+        })
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(messages => {
+                const history = document.getElementById('chatHistory');
+                history.innerHTML = '';
+                messages.forEach(msg => appendMessage(msg));
+            })
+            .catch(() => alert('消息加载失败，请稍后重试'));
+    }
+
+    function createSession() {
+        const name = prompt('请输入新对话名称：');
+        if (name) {
+            fetch('/api/sessions', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ name })
+            }).then(loadSessions).catch(() => alert('创建会话失败'));
+        }
+    }
+
+    function deleteSession() {
+        if (selectedSessionId && confirm('确定要删除当前对话吗？')) {
+            fetch('/api/sessions', {
+                method: 'DELETE',
+                headers: getHeaders(),
+                body: JSON.stringify({ ids: [selectedSessionId] })
+            }).then(() => {
+                selectedSessionId = null;
+                loadSessions();
+                document.getElementById('chatHistory').innerHTML = '';
+                updateSendButtonState();
+            }).catch(() => alert('删除失败'));
+        }
+    }
+
+    async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message || !selectedSessionId) return;
+
+        try {
+            sendButton.disabled = true;
+            messageInput.value = '';
+            updateSendButtonState();
+
+            appendMessage({
+                role: 'user',
+                content: message,
+                reference: null
+            });
+
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({
+                    sessionId: selectedSessionId,
+                    message: message
+                })
+            });
+
+            if (!response.ok) throw new Error();
+            const aiResponse = await response.json();
+
+            appendMessage({
+                role: 'assistant',
+                content: aiResponse.content,
+                reference: aiResponse.reference
+            });
+
+        } catch {
+            appendMessage({
+                role: 'system',
+                content: '消息发送失败，请检查网络后重试',
+                reference: null
+            });
+        } finally {
+            sendButton.disabled = false;
+            scrollToBottom();
+        }
+    }
+
+    function appendMessage(msg) {
+        const history = document.getElementById('chatHistory');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msg.role}`;
+
+        const formattedContent = formatMessageContent(msg.content);
+
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <span class="role-icon">${msg.role === 'assistant' ? '🤖' : '👤'}</span>
+                <div class="md-content">${formattedContent}</div>
+                ${msg.reference ? `
+                    <div class="reference-badge">
+                        信息来源：
+                        <a href="${msg.reference}" target="_blank">查看相关文档</a>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        history.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function formatMessageContent(text) {
+        // 优化后的Markdown处理
+        let content = text
+            .replace(/##\d+\$\$/g, '')
+            .replace(/###\s+(.+)/g, '<h3>$1</h3>')
+            .replace(/##\s+(.+)/g, '<h4>$1</h4>')
+            .replace(/(\d+)\.\s(.+)/g, '<li class="ol-item">$2</li>')
+            .replace(/(\n\s*[-•])\s(.+)/g, '<li class="ul-item">$2</li>')
+            .replace(/\n{2,}/g, '\n')
+            .replace(/(^|\n)([^<].+)/g, (_, p1, p2) => {
+                return p2.trim() ? `<p>${p2}</p>` : '';
+            });
+
+        // 合并相邻列表
+        content = content
+            .replace(/<\/ul>\s*<ul>/g, '')
+            .replace(/<\/ol>\s*<ol>/g, '');
+
+        return content;
+    }
+
+    function scrollToBottom() {
+        const history = document.getElementById('chatHistory');
+        history.scrollTop = history.scrollHeight;
+    }
+
+    function handleKeyDown(event) {
+        if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+</script>
+</body>
+</html>

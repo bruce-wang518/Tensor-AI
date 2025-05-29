@@ -1,0 +1,36 @@
+# 开发环境配置
+spring:
+  profiles:
+    active: dev
+  resources:
+    static-locations: file:./src/main/resources/static/
+  thymeleaf:
+    cache: false
+    prefix: file:./src/main/resources/templates/
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+ragflow:
+  api:
+    base-url: http://127.0.0.1 #http://127.0.0.1
+    key: ragflow-IzYjFkM2EwMDQ4ZjExZjBhNmJmMDI0Mm  #ragflow-IzYjFkM2EwMDQ4ZjExZjBhNmJmMDI0Mm
+
+  chat:
+    id.process: ac4df552048b11f0b44b0242ac120006  # 流程规范
+    id.product: 34e07a0e142511f08b7a0242ac120007  # 产品技术
+    id.data: e3c93b4c3ad011f0837e0242ac120003     # 业务数据
+
+  #chat:
+   # id.process: 1789fa2e3b9a11f096a70242ac130006  # 流程规范
+   # id.product: 533ef7c23b9a11f0af860242ac130006  # 产品技术
+   # id.data: 1789fa2e3b9a11f096a70242ac130006     # 业务数据
+
+
+logging:
+  level:
+    org.springframework.web: DEBUG    # 调试静态资源加载
+    org.springframework.core.io: DEBUG
+    com.example.service: DEBUG
