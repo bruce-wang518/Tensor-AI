@@ -1,0 +1,54 @@
+
+********编译和启动项目
+    mvn clean install -U -DskipTests
+    mvn package
+    java -jar target/ragflow-api-1.0.0.jar
+    java -jar your-application.jar --spring.profiles.active=prod
+
+    mysql -u root -p
+    infini_rag_flow
+    use rag_flow
+
+
+mobile->token->apikey
+13612345678,token-zjts,ragflow-JhMGQwYjRlNDA1YjExZjBiNjljMWI2YT
+13712345678 token-bruce,ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm
+
+
+ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm
+
+********参考文档链接格式，可以直接打开。
+    docx http://127.0.0.1/document/ec35214435e711f08da40242ac120006?ext=docx&prefix=document
+    pdf  http://127.0.0.1/document/55bea9ac360911f094f10242ac120006?ext=pdf&prefix=document
+    xlsx http://127.0.0.1/document/464ecd40361211f098350242ac120006?ext=xlsx&prefix=document
+    pptx 没有预览链接
+
+    前端链接拼接来自于原始响应以下节点：
+    data.reference.doc_aggs
+    "doc_aggs": [
+                    {
+                        "count": 2,
+                        "doc_id": "c41ce6d035db11f0b63f0242ac120006",
+                        "doc_name": "财务文件/ZJTS--CW01  费用报销及合同付款制度（试行版）(1).pdf"
+                    }
+                ]
+
+
+********发起聊天
+    curl -X POST "http://127.0.0.1/api/v1/chats/ac4df552048b11f0b44b0242ac120006/completions" -H "Content-Type: application/json" -H "Authorization: Bearer ragflow-IzYjFkM2EwMDQ4ZjExZjBhNmJmMDI0Mm" -d "{\"question\": \"报销流程是怎么样的\", \"stream\": false, \"session_id\":\"75e8d0b63a1b11f0a5880242ac120003\"}"
+
+    curl -N -v -H "Content-Type: application/json" -H "tab: process" -d '{"sessionId":"75e8d0b63a1b11f0a5880242ac120003","message":"测试"}' http://localhost:8080/api/messages/stream
+
+********postman中使用post方法
+    url: http://127.0.0.1:80/api/v1/chats/ac4df552048b11f0b44b0242ac120006/completions
+    body 使用raw，格式为json
+    内容：
+    {
+        "question": "报销流程是怎么样的?",
+        "stream": false,
+        "session_id": "75e8d0b63a1b11f0a5880242ac120003"
+    }
+    header设置: Content-Type:application/json
+    报错bad request,原因是不能去掉默认的几个header
+    Authorization可以在Authorization tab中设，选择bearer token
+    Authorization:Bearer ragflow-IzYjFkM2EwMDQ4ZjExZjAhNmJmMDI0Mm

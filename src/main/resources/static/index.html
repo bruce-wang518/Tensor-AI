@@ -9,7 +9,9 @@
             --neon-blue: #00F7FF;
             --dark-bg: #0F172A;
             --content-bg: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(255,255,255,0.15);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --user-bubble: rgba(0, 132, 255, 0.3);
+            --assistant-bubble: rgba(255, 255, 255, 0.08);
         }
 
         body {
@@ -23,13 +25,15 @@
 
         .header-container {
             max-width: 1200px;
-            margin: 0 auto 30px;
+            margin: 0 auto 20px;
         }
 
         .title-tabs-wrapper {
             display: flex;
             align-items: center;
-            gap: 40px;
+            gap: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .header-title {
@@ -37,65 +41,80 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 700;
-            font-size: 28px;
-            text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+            font-size: 24px;
             white-space: nowrap;
         }
 
         .tabs {
             display: flex;
-            gap: 12px;
-            background: rgba(255,255,255,0.1);
-            padding: 6px;
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px;
+            border-radius: 6px;
         }
 
         .tab-item {
-            padding: 8px 20px;
-            border-radius: 6px;
+            padding: 6px 16px;
+            font-size: 13px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             background: transparent;
-            color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.2);
-            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .tab-item.active {
             background: #0084ff;
             color: white;
-            border-color: #0084ff;
-            box-shadow: 0 2px 8px rgba(0,132,255,0.3);
         }
 
         .container {
             display: flex;
-            gap: 20px;
-            height: calc(100vh - 160px);
+            gap: 15px;
+            height: calc(100vh - 140px);
             max-width: 1200px;
             margin: 0 auto;
         }
 
         .sidebar {
-            width: 300px;
+            width: 260px;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
+            padding: 12px;
             background: var(--content-bg);
-            padding: 15px;
-            backdrop-filter: blur(10px);
         }
 
         .session-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+        }
+
+        .session-header h3 {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            font-size: 16px;
         }
 
         .session-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        .session-actions button {
+            padding: 4px 12px;
+            font-size: 12px;
+            background: rgba(0, 132, 255, 0.3);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .session-actions button:hover {
+            background: rgba(0, 132, 255, 0.5);
         }
 
         .session-list {
@@ -103,48 +122,51 @@
             padding: 0;
             margin: 0;
             overflow-y: auto;
-            height: calc(100% - 60px);
+            height: calc(100% - 50px);
         }
 
         .session-item {
-            padding: 12px;
+            padding: 8px 12px;
             cursor: pointer;
-            border-radius: 8px;
-            margin: 5px 0;
-            transition: all 0.3s ease;
-            color: rgba(255,255,255,0.8);
-            background: rgba(255,255,255,0.05);
-            font-size: 14px;
+            border-radius: 6px;
+            margin: 3px 0;
+            transition: all 0.2s ease;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .session-item:hover {
-            background: rgba(0,132,255,0.1);
+            background: rgba(0, 132, 255, 0.1);
         }
 
         .session-item.selected {
-            background: rgba(0,132,255,0.2);
+            background: rgba(0, 132, 255, 0.2);
             font-weight: 500;
         }
 
         .main {
             flex: 1;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             background: var(--content-bg);
-            backdrop-filter: blur(10px);
         }
 
         .chat-history {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 12px;
+            scroll-behavior: smooth;
         }
 
         .message {
             display: flex;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             animation: messageAppear 0.3s ease-out;
         }
 
@@ -157,50 +179,48 @@
         }
 
         .message-content {
-            max-width: 70%;
-            padding: 16px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.08);
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: var(--assistant-bubble);
             border: 1px solid var(--border-color);
-            color: rgba(255,255,255,0.9);
+            color: rgba(255, 255, 255, 0.9);
             font-size: 14px;
-            line-height: 1.6;
-            white-space: pre-wrap;
+            line-height: 1.5;
             word-break: break-word;
         }
 
         .user .message-content {
-            background: rgba(0,132,255,0.3);
-            border-color: rgba(0,132,255,0.5);
+            background: var(--user-bubble);
+            border-color: rgba(0, 132, 255, 0.5);
         }
 
-        /* Markdown内容样式 */
         .md-content {
             font-family: inherit;
         }
 
         .md-content h3 {
-            font-size: 16px;
+            font-size: 15px;
             color: #00F7FF;
-            margin: 15px 0 10px;
-            padding-bottom: 3px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin: 8px 0 6px;
+            padding-bottom: 2px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .md-content h4 {
             font-size: 14px;
             color: #80dfff;
-            margin: 12px 0 8px;
+            margin: 6px 0 4px;
         }
 
         .md-content ul,
         .md-content ol {
-            margin: 8px 0;
-            padding-left: 25px;
+            margin: 4px 0;
+            padding-left: 20px;
         }
 
         .md-content li {
-            margin: 6px 0;
+            margin: 3px 0;
             position: relative;
         }
 
@@ -212,19 +232,17 @@
         }
 
         .md-content p {
-            margin: 8px 0;
+            margin: 4px 0;
         }
 
-        /* 修改后的参考文档样式 */
         .reference-badge {
             font-size: 12px;
-            color: rgba(255,255,255,0.6);
-            margin: 10px 0 0;
-            padding: 8px 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 8px 0 0;
+            padding: 6px 10px;
             background: rgba(0, 247, 255, 0.1);
-            border-radius: 6px;
+            border-radius: 4px;
             line-height: 1.4;
-            text-align: left;
         }
 
         .reference-badge a {
@@ -232,7 +250,7 @@
             color: var(--neon-blue) !important;
             text-decoration: none;
             margin: 4px 0;
-            padding: 4px 0;
+            padding: 3px 0;
             border-bottom: 1px solid rgba(0, 247, 255, 0.3);
             transition: all 0.2s ease;
             max-width: 100%;
@@ -246,13 +264,13 @@
         }
 
         .role-icon {
-            font-size: 18px;
-            margin-right: 8px;
+            font-size: 16px;
+            margin-right: 6px;
             vertical-align: middle;
         }
 
         .input-area {
-            padding: 20px;
+            padding: 15px;
             border-top: 1px solid var(--border-color);
         }
 
@@ -264,44 +282,113 @@
 
         textarea {
             flex: 1;
-            height: 60px;
-            padding: 12px;
+            min-height: 40px;
+            max-height: 120px;
+            padding: 10px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 6px;
             resize: vertical;
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.03);
             color: #fff;
             font-size: 14px;
+            line-height: 1.4;
         }
 
         button {
             background: #0084ff;
             color: white;
             border: none;
-            padding: 8px 24px;
-            border-radius: 8px;
+            padding: 6px 20px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 14px;
         }
 
         button:hover:not(:disabled) {
             background: #0069d9;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,132,255,0.3);
+            box-shadow: 0 4px 8px rgba(0, 132, 255, 0.3);
         }
 
         button:disabled {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             cursor: not-allowed;
         }
 
         @keyframes messageAppear {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 流式加载动画 */
+        .streaming-cursor::after {
+            content: '▋';
+            animation: cursorBlink 1s infinite;
+            color: var(--neon-blue);
+            margin-left: 2px;
+        }
+
+        @keyframes cursorBlink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            background-color: #00cc66;
+        }
+
+        .status-indicator.streaming {
+            background-color: var(--neon-blue);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* 滚动条美化 */
+        .chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-history::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        .chat-history::-webkit-scrollbar-thumb {
+            background: rgba(0, 132, 255, 0.4);
+            border-radius: 4px;
+        }
+
+        .chat-history::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 132, 255, 0.6);
         }
     </style>
 </head>
@@ -320,17 +407,35 @@
 <div class="container">
     <div class="sidebar">
         <div class="session-header">
-            <h3 style="color: rgba(255,255,255,0.9); margin: 0">对话列表</h3>
+            <h3>对话列表</h3>
             <div class="session-actions">
                 <button onclick="deleteSession()">删除</button>
-                <button onclick="createSession()">新建对话</button>
+                <button onclick="createSession()">新建</button>
             </div>
         </div>
         <ul class="session-list" id="sessionList"></ul>
     </div>
 
     <div class="main">
-        <div class="chat-history" id="chatHistory"></div>
+        <div class="chat-history" id="chatHistory">
+            <div class="welcome-message">
+                <div class="message assistant">
+                    <div class="message-content">
+                        <span class="role-icon">🤖</span>
+                        <div class="md-content">
+                            <h3>欢迎使用腾视科技知识库助手</h3>
+                            <p>我是您的智能助手，可以随时为您解答以下领域的问题：</p>
+                            <ul>
+                                <li>公司流程规范</li>
+                                <li>产品技术问题</li>
+                                <li>业务数据分析</li>
+                            </ul>
+                            <p>请从左侧选择或创建对话，开始向我提问吧！</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="input-area">
             <div class="input-wrapper">
                 <textarea
@@ -349,6 +454,11 @@
     let currentTab = 'process';
     const sendButton = document.getElementById('sendButton');
     const messageInput = document.getElementById('messageInput');
+    let isStreaming = false;
+    let currentStreamingMessage = null;
+    let accumulatedContent = '';
+    let streamingReferences = new Map(); // 使用Map存储参考文档
+    let controller = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         messageInput.addEventListener('input', updateSendButtonState);
@@ -364,6 +474,31 @@
         document.getElementById('chatHistory').innerHTML = '';
         loadSessions();
         updateSendButtonState();
+
+        // 添加欢迎消息
+        const welcomeMessage = document.querySelector('.welcome-message');
+        if (!welcomeMessage) {
+            const chatHistory = document.getElementById('chatHistory');
+            chatHistory.innerHTML = `
+                <div class="welcome-message">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            <span class="role-icon">🤖</span>
+                            <div class="md-content">
+                                <h3>欢迎使用腾视科技知识库助手</h3>
+                                <p>我是您的智能助手，可以随时为您解答以下领域的问题：</p>
+                                <ul>
+                                    <li>公司流程规范</li>
+                                    <li>产品技术问题</li>
+                                    <li>业务数据分析</li>
+                                </ul>
+                                <p>请从左侧选择或创建对话，开始向我提问吧！</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     function getHeaders() {
@@ -374,7 +509,7 @@
     }
 
     function updateSendButtonState() {
-        sendButton.disabled = !(messageInput.value.trim() && selectedSessionId);
+        sendButton.disabled = !(messageInput.value.trim() && selectedSessionId) || isStreaming;
     }
 
     function loadSessions() {
@@ -385,14 +520,14 @@
             .then(sessions => {
                 const list = document.getElementById('sessionList');
                 list.innerHTML = sessions.map(session => `
-                <li class="session-item"
-                    data-id="${session.id}"
-                    onclick="selectSession('${session.id}', this)">
-                    ${session.name}
-                </li>
-            `).join('');
+                    <li class="session-item"
+                        data-id="${session.id}"
+                        onclick="selectSession('${session.id}', this)">
+                        ${session.name}
+                    </li>
+                `).join('');
             })
-            .catch(() => alert('会话加载失败，请刷新页面重试'));
+            .catch(() => console.error('会话加载失败'));
     }
 
     function selectSession(sessionId, element) {
@@ -411,8 +546,9 @@
                 const history = document.getElementById('chatHistory');
                 history.innerHTML = '';
                 messages.forEach(msg => appendMessage(msg));
+                scrollToBottom();
             })
-            .catch(() => alert('消息加载失败，请稍后重试'));
+            .catch(() => console.error('消息加载失败'));
     }
 
     function createSession() {
@@ -437,53 +573,205 @@
                 loadSessions();
                 document.getElementById('chatHistory').innerHTML = '';
                 updateSendButtonState();
+
+                // 重新添加欢迎消息
+                const chatHistory = document.getElementById('chatHistory');
+                chatHistory.innerHTML = `
+                    <div class="welcome-message">
+                        <div class="message assistant">
+                            <div class="message-content">
+                                <span class="role-icon">🤖</span>
+                                <div class="md-content">
+                                    <h3>欢迎使用腾视科技知识库助手</h3>
+                                    <p>请从左侧选择或创建对话，开始向我提问吧！</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }).catch(() => alert('删除失败'));
         }
     }
 
     async function sendMessage() {
         const message = messageInput.value.trim();
-        if (!message || !selectedSessionId) return;
+        if (!message || !selectedSessionId || isStreaming) return;
 
         try {
+            isStreaming = true;
             sendButton.disabled = true;
             messageInput.value = '';
-            updateSendButtonState();
+            streamingReferences = new Map(); // 重置参考文档
+            accumulatedContent = '';
 
+            // 添加用户消息
             appendMessage({
                 role: 'user',
                 content: message,
                 reference: null
             });
 
-            const response = await fetch('/api/messages', {
+            // 创建AI消息容器
+            currentStreamingMessage = createStreamingMessage();
+
+            // 创建AbortController以便取消请求
+            controller = new AbortController();
+
+            // 发起流式请求
+            const response = await fetch('/api/messages/stream', {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({
                     sessionId: selectedSessionId,
                     message: message
-                })
+                }),
+                signal: controller.signal
             });
 
-            if (!response.ok) throw new Error();
-            const aiResponse = await response.json();
+            if (!response.ok) {
+                throw new Error(`请求失败: ${response.status}`);
+            }
 
-            appendMessage({
-                role: 'assistant',
-                content: aiResponse.content,
-                reference: aiResponse.reference
-            });
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
 
-        } catch {
-            appendMessage({
-                role: 'system',
-                content: '消息发送失败，请检查网络后重试',
-                reference: null
-            });
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+
+                // 处理事件流格式
+                const events = buffer.split('\n\n');
+                buffer = events.pop() || ''; // 剩余部分放回buffer
+
+                for (const event of events) {
+                    const lines = event.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data:')) {
+                            try {
+                                const eventData = JSON.parse(line.substring(5).trim());
+                                if (eventData.code === 0 && eventData.data) {
+                                    // 更新内容
+                                    if (eventData.data.answer) {
+                                        accumulatedContent = eventData.data.answer;
+                                        updateStreamingContent(accumulatedContent);
+                                    }
+
+                                    // 处理参考文档
+                                    if (eventData.data.reference && eventData.data.reference.doc_aggs) {
+                                        eventData.data.reference.doc_aggs.forEach(doc => {
+                                            // 使用doc_id作为key存储文档信息
+                                            streamingReferences.set(doc.doc_id, {
+                                                doc_id: doc.doc_id,
+                                                doc_name: doc.doc_name
+                                            });
+                                        });
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('解析事件数据失败:', e);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 流结束，完成消息
+            finalizeStreamingMessage();
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.log('请求已被取消');
+            } else {
+                console.error('请求失败:', error);
+                appendMessage({
+                    role: 'system',
+                    content: '请求失败: ' + error.message,
+                    reference: null
+                });
+            }
+
+            // 如果流式消息已创建但未完成，移除它
+            if (currentStreamingMessage) {
+                currentStreamingMessage.remove();
+            }
         } finally {
+            isStreaming = false;
             sendButton.disabled = false;
+            controller = null;
             scrollToBottom();
         }
+    }
+
+    function createStreamingMessage() {
+        const history = document.getElementById('chatHistory');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message assistant';
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <span class="role-icon">🤖</span>
+                <div class="md-content streaming-content">
+                    <span class="status-indicator streaming"></span>正在思考中...
+                </div>
+            </div>
+        `;
+        history.appendChild(messageDiv);
+        scrollToBottom();
+        return messageDiv;
+    }
+
+    function updateStreamingContent(content) {
+        if (!currentStreamingMessage) return;
+
+        const contentDiv = currentStreamingMessage.querySelector('.streaming-content');
+        if (contentDiv) {
+            contentDiv.innerHTML = formatMessageContent(content) + '<span class="streaming-cursor"></span>';
+            scrollToBottom('smooth');
+        }
+    }
+
+    function finalizeStreamingMessage() {
+        if (!currentStreamingMessage) return;
+
+        const contentDiv = currentStreamingMessage.querySelector('.streaming-content');
+        const messageContainer = currentStreamingMessage.querySelector('.message-content');
+
+        if (contentDiv) {
+            // 移除光标
+            const cursor = contentDiv.querySelector('.streaming-cursor');
+            if (cursor) cursor.remove();
+
+            // 设置最终内容
+            contentDiv.innerHTML = formatMessageContent(accumulatedContent);
+
+            // 添加参考文档
+            if (streamingReferences.size > 0) {
+                const refDiv = document.createElement('div');
+                refDiv.className = 'reference-badge';
+                refDiv.innerHTML = '<div>参考文档：</div>';
+
+                // 遍历所有参考文档
+                streamingReferences.forEach(doc => {
+                    // 提取文件名和扩展名
+                    const fileName = doc.doc_name;
+                    const displayName = fileName.split('/').pop(); // 获取文件名部分
+                    const ext = fileName.split('.').pop().toLowerCase();
+
+
+                        // 生成文档链接
+                        const docUrl = `http://127.0.0.1/document/${doc.doc_id}?ext=${ext}&prefix=document`;
+                        refDiv.innerHTML += `<a href="${docUrl}" target="_blank">${displayName}</a>`;
+
+                });
+
+                messageContainer.appendChild(refDiv);
+            }
+        }
+
+        currentStreamingMessage = null;
+        scrollToBottom('smooth');
     }
 
     function appendMessage(msg) {
@@ -491,17 +779,14 @@
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${msg.role}`;
 
-        // 格式化消息内容
         const formattedContent = formatMessageContent(msg.content);
-
-        // 解析参考链接
         let referenceLinks = '';
+
+        // 处理历史消息中的参考文档
         if (msg.reference) {
             referenceLinks = msg.reference.split(',').map(pair => {
                 const [title, url] = pair.split('|');
-                return `<a href="${url}" target="_blank" title="${decodeURIComponent(title)}">
-                          ${decodeURIComponent(title)}
-                        </a>`;
+                return `<a href="${url}" target="_blank">${decodeURIComponent(title)}</a>`;
             }).join('');
         }
 
@@ -511,7 +796,7 @@
                 <div class="md-content">${formattedContent}</div>
                 ${referenceLinks ? `
                     <div class="reference-badge">
-                        <div style="color: rgba(255,255,255,0.8); margin-bottom: 6px;">参考文档：</div>
+                        <div>参考文档：</div>
                         ${referenceLinks}
                     </div>
                 ` : ''}
@@ -525,21 +810,37 @@
         // 清理特殊标记
         let content = text.replace(/##\d+\$\$/g, '');
 
-        // Markdown转换
-        return content
+        // 处理标题
+        content = content
             .replace(/###\s+(.+)/g, '<h3>$1</h3>')
-            .replace(/##\s+(.+)/g, '<h4>$1</h4>')
-            .replace(/(\d+)\.\s/g, '<li>$1. ')
-            .replace(/(\n\s*[-•])\s/g, '<li>')
-            .replace(/(<li>.*)(\n|$)/g, '$1</li>')
-            .replace(/(<\/h[34]>)\n/g, '$1')
+            .replace(/##\s+(.+)/g, '<h4>$1</h4>');
+
+        // 处理列表
+        content = content
+            .replace(/(\d+)\.\s(.+)/g, '<li>$1. $2</li>')
+            .replace(/(\n\s*[-•])\s(.+)/g, '<li>$2</li>');
+
+        // 处理段落
+        content = content
             .replace(/\n{2,}/g, '</p><p>')
             .replace(/(^|\n)([^<].*)/g, '<p>$2</p>');
+
+        // 合并相邻列表
+        content = content
+            .replace(/<\/li><\/ul>\s*<ul>/g, '')
+            .replace(/<\/li><\/ol>\s*<ol>/g, '');
+
+        return content;
     }
 
-    function scrollToBottom() {
+    function scrollToBottom(behavior = 'auto') {
         const history = document.getElementById('chatHistory');
-        history.scrollTop = history.scrollHeight;
+        requestAnimationFrame(() => {
+            history.scrollTo({
+                top: history.scrollHeight,
+                behavior: behavior
+            });
+        });
     }
 
     function handleKeyDown(event) {
@@ -548,6 +849,30 @@
             sendMessage();
         }
     }
+
+    // 取消当前流式请求
+    function cancelStreaming() {
+        if (controller) {
+            controller.abort();
+            isStreaming = false;
+            sendButton.disabled = false;
+
+            if (currentStreamingMessage) {
+                const contentDiv = currentStreamingMessage.querySelector('.streaming-content');
+                if (contentDiv) {
+                    contentDiv.innerHTML = formatMessageContent(accumulatedContent);
+                }
+                currentStreamingMessage = null;
+            }
+        }
+    }
+
+    // 添加取消按钮事件监听
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && isStreaming) {
+            cancelStreaming();
+        }
+    });
 </script>
 </body>
 </html>

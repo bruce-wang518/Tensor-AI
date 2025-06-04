@@ -29,6 +29,7 @@ ragflow:
    # id.data: 1789fa2e3b9a11f096a70242ac130006     # 业务数据
 
 
+
 logging:
   level:
     org.springframework.web: DEBUG    # 调试静态资源加载

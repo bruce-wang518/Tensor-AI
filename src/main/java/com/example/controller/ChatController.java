@@ -4,68 +4,89 @@ import com.example.dto.*;
 import com.example.service.RagflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class ChatController {
+
+
     @Autowired
     private RagflowService ragflowService;
 
+    // 登录接口
+    @PostMapping("/login")
+    public Response<String> login(@RequestBody LoginRequest request) {
+        return Response.success("token_123456");
+    }
+
     @GetMapping("/sessions")
-    public List<SessionDTO> getSessions(@RequestHeader("tab") String tab) {
-        System.out.println("########tab=" + tab);
-        return ragflowService.getSessions(tab);
+    public Response<List<SessionDTO>> getSessions(@RequestHeader("token") String token,
+                                                  @RequestHeader("appid") String appid) {
+        System.out.println("########appid=" + appid);
+        List<SessionDTO> sessions = ragflowService.getSessions(appid);
+        return Response.success(sessions);
     }
 
     @PostMapping("/sessions")
-    public void createSession(@RequestBody SessionRequest request,
-                              @RequestHeader("tab") String tab) {
-        ragflowService.createSession(tab, request.getName());
-    }
-
-    @DeleteMapping("/sessions")
-    public void deleteSessions(@RequestBody DeleteRequest request,
-                               @RequestHeader("tab") String tab) {
-        ragflowService.deleteSessions(tab, request.getIds());
-    }
-
-    @GetMapping("/messages")
-    public List<MessageResponse> getMessages(@RequestParam String sessionId,
-                                             @RequestHeader("tab") String tab) {
-        return ragflowService.getMessages(tab, sessionId);
-    }
-
-    @PostMapping("/messages")
-    public ResponseEntity<MessageResponse> sendMessage(@RequestBody MessageRequest request,
-                                                       @RequestHeader("tab") String tab) {
+    public Response<SessionResponseDTO> createSession(@RequestBody SessionRequest request,
+                                                      @RequestHeader("token") String token,
+                                                      @RequestHeader("appid") String appid) {
         try {
-            MessageResponse response = ragflowService.sendMessage(
-                    tab,
-                    request.getSessionId(),
-                    request.getMessage()
-            );
-            return ResponseEntity.ok(response);
+            SessionResponseDTO sessionResponse = ragflowService.createSession(appid, request.getName());
+            return Response.success(sessionResponse);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MessageResponse("system", "消息处理失败: " + e.getMessage()));
+            return Response.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "创建会话失败: " + e.getMessage());
         }
     }
 
+    @DeleteMapping("/sessions")
+    public Response<Void> deleteSessions(@RequestBody DeleteRequest request,
+                                         @RequestHeader("token") String token,
+                                         @RequestHeader("appid") String appid) {
+        ragflowService.deleteSessions(appid, request.getIds());
+        return Response.success(null);
+    }
+
+    @GetMapping("/messages")
+    public Response<List<MessageResponse>> getMessages(@RequestParam String sessionId,
+                                                       @RequestHeader("token") String token,
+                                                       @RequestHeader("appid") String appid) {
+        List<MessageResponse> messages = ragflowService.getMessages(appid, sessionId);
+        return Response.success(messages);
+    }
+
+    @PostMapping("/messages")
+    public Response<MessageResponse> sendMessage(@RequestBody MessageRequest request,
+                                                 @RequestHeader("token") String token,
+                                                 @RequestHeader("appid") String appid) {
+        try {
+            MessageResponse response = ragflowService.sendMessage(
+                    appid,
+                    request.getSessionId(),
+                    request.getMessage()
+            );
+            return Response.success(response);
+        } catch (Exception e) {
+            return Response.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "消息处理失败: " + e.getMessage());
+        }
+    }
+
+    // SSE流接口保持原样
     @PostMapping(value = "/messages/stream", produces = "text/event-stream")
     public SseEmitter handleStreamRequest(
-            @RequestBody MessageRequest request,
-            @RequestHeader("tab") String tab) {
+            @RequestBody MessageRequest request, @RequestHeader("token") String token,
+            @RequestHeader("appid") String appid) {
 
-        SseEmitter emitter = new SseEmitter(180000L); // 避免使用下划线数字字面量
+        SseEmitter emitter = new SseEmitter(180000L);
         try {
             ragflowService.streamMessage(
-                    tab,
+                    appid,
                     request.getSessionId(),
                     request.getMessage(),
                     emitter
@@ -76,27 +97,5 @@ public class ChatController {
         return emitter;
     }
 
-    class SessionRequest {
-        private String name;
 
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-    }
-
-    class DeleteRequest {
-        private List<String> ids;
-
-        public List<String> getIds() {
-            return ids;
-        }
-
-        public void setIds(List<String> ids) {
-            this.ids = ids;
-        }
-    }
 }

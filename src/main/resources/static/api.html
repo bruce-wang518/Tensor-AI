@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API接口文档</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --reference: #8e44ad;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .content {
+            padding: 30px 40px;
+        }
+
+        /* 目录导航样式 */
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        .toc h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e6ed;
+        }
+
+        .toc ul {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            gap: 10px;
+        }
+
+        .toc li {
+            background: #e0e6ed;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .toc li:hover {
+            background: var(--primary);
+        }
+
+        .toc a {
+            display: block;
+            padding: 8px 20px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .toc li:hover a {
+            color: white;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            border-left: 4px solid var(--primary);
+            scroll-margin-top: 100px;
+        }
+
+        .section h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h2::before {
+            content: "•";
+            margin-right: 10px;
+            font-size: 2rem;
+            color: var(--accent);
+        }
+
+        .section h2 a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .section h2 a:hover {
+            text-decoration: underline;
+        }
+
+        .section p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .section ul {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        .section li {
+            margin-bottom: 8px;
+        }
+
+        .request-block, .response-block {
+            margin: 25px 0;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border-left: 3px solid var(--success);
+            overflow: auto;
+        }
+
+        .request-block {
+            border-left-color: var(--primary);
+        }
+
+        .response-block {
+            border-left-color: var(--success);
+        }
+
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            overflow: auto;
+            line-height: 1.4;
+            margin: 15px 0;
+            max-height: 400px;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+        }
+
+        .api-url {
+            background-color: var(--light);
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            display: inline-block;
+            margin: 10px 0;
+            color: var(--primary);
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+
+        .note {
+            background-color: #e7f3fe;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+
+        .endpoint-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .endpoint-method {
+            background-color: var(--primary);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .endpoint-path {
+            font-family: monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .json {
+            color: #f8f8f2;
+        }
+
+        .json .property {
+            color: #ff79c6;
+        }
+
+        .json .string {
+            color: #f1fa8c;
+        }
+
+        .json .number {
+            color: #bd93f9;
+        }
+
+        .json .boolean {
+            color: #ff79c6;
+        }
+
+        .json .null {
+            color: #bd93f9;
+        }
+
+        .json .reference {
+            color: #8be9fd;
+        }
+
+        .flex-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .flex-container > div {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .highlight {
+            background-color: #ffecb3;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .stream-indicator {
+            display: inline-block;
+            background-color: var(--success);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            header {
+                padding: 20px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .toc ul {
+                flex-direction: column;
+            }
+
+            .toc li {
+                width: 100%;
+            }
+
+            .flex-container {
+                flex-direction: column;
+            }
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 999;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .reference-block {
+            background-color: #2a2039;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .reference-title {
+            color: var(--reference);
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .reference-title::before {
+            content: "⚡";
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+
+        .reference-item {
+            border-left: 3px solid var(--reference);
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background-color: rgba(142, 68, 173, 0.1);
+        }
+
+        .doc-name {
+            font-weight: bold;
+            color: #bd93f9;
+        }
+
+        .doc-content {
+            color: #a9b7c6;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>API接口文档</h1>
+        <p>统一接口规范，包含登录、会话管理、消息发送等功能</p>
+    </header>
+
+    <div class="content">
+        <!-- 目录导航 -->
+        <div class="toc">
+            <h2>API目录</h2>
+            <ul>
+                <li><a href="#overview">文档概述</a></li>
+                <li><a href="#login">1. 登录接口</a></li>
+                <li><a href="#get-sessions">2. 获取会话列表</a></li>
+                <li><a href="#create-session">3. 创建会话</a></li>
+                <li><a href="#delete-sessions">4. 删除会话</a></li>
+                <li><a href="#get-messages">5. 获取消息记录</a></li>
+                <li><a href="#stream-message">6. 发送流式消息</a></li>
+                <li><a href="#send-message">7. 发送消息</a></li>
+            </ul>
+        </div>
+
+        <!-- 概述部分 -->
+        <div class="section" id="overview">
+            <h2><a href="#overview">文档概述</a></h2>
+            <p>除登录接口外，所有接口都需要在Header中提供<span class="highlight">token</span>和<span class="highlight">appid</span>，无效token会返回<span class="highlight">401未授权</span>错误。</p>
+
+            <div class="note">
+                <p><strong>示例域名：</strong>文档中的 <span class="highlight">localhost:8080</span> 需替换为实际部署域名</p>
+            </div>
+
+            <h2>统一响应格式</h2>
+            <p>所有接口都遵循以下JSON格式返回数据：</p>
+
+            <pre><code class="json">{
+    "code": 0,       // 0=成功，非0=错误
+    "message": null, // 成功时为null，错误时为错误信息
+    "data": {}      // 实际返回的数据内容
+}</code></pre>
+
+            <p><strong>通用错误代码：</strong></p>
+            <ul>
+                <li><span class="highlight">401</span>：未授权（无效token）</li>
+                <li><span class="highlight">400</span>：请求参数错误</li>
+                <li><span class="highlight">500</span>：服务器内部错误</li>
+            </ul>
+        </div>
+
+        <!-- 登录接口 -->
+        <div class="section" id="login">
+            <h2><a href="#login">1. 登录接口</a></h2>
+            <p>用户登录获取访问令牌</p>
+
+            <div class="endpoint-info">
+                <span class="endpoint-method">POST</span>
+                <span class="endpoint-path">/api/login</span>
+            </div>
+
+            <h3>请求头</h3>
+            <p>Content-Type: application/json</p>
+
+            <h3>请求体</h3>
+            <pre><code class="json">{
+    "mobile": "12345678901",
+    "code": "12345"
+}</code></pre>
+
+            <h3>cURL示例</h3>
+            <pre><code class="bash">curl -X POST -H "Content-Type: application/json" -d "{\"mobile\":\"12345678901\",\"code\":\"12345\"}" http://localhost:8080/api/login</code></pre>
+
+            <h3>成功响应</h3>
+            <pre><code class="json">{
+    "code": 0,
+    "message": null,
+    "data": "token_123456"
+}</code></pre>
+        </div>
+
+        <!-- 获取会话列表 -->
+        <div class="section" id="get-sessions">
+            <h2><a href="#get-sessions">2. 获取会话列表</a></h2>
+            <p>获取当前应用的会话列表</p>
+
+            <div class="endpoint-info">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-path">/api/sessions</span>
+            </div>
+
+            <h3>请求头</h3>
+            <p>token: 登录返回的token</p>
+            <p>appid: 应用ID（如process, product, data等）</p>
+
+            <h3>cURL示例</h3>
+            <pre><code class="bash">curl -H "token: token_123456" -H "appid: process" http://localhost:8080/api/sessions</code></pre>
+
+            <h3>成功响应</h3>
+            <pre><code class="json">{
+    "code": 0,
+    "message": null,
+    "data": [
+        {
+            "id": "2968c1b866d2490a8a43d2a50ae6e0e6",
+            "name": "报销流程是怎么样的？",
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": "Hi! I'm your assistant, what can I do for you?",
+                    "metadata": null,
+                    "reference": ""
+                },
+                {
+                    "role": "user",
+                    "content": "报销流程是怎么样的？",
+                    "metadata": null,
+                    "reference": ""
+                },
+                {
+                    "role": "assistant",
+                    "content": "根据知识库内容，腾视科技的费用报销流程主要分为以下两种情况 ##6$$ ##2$$",
+                    "metadata": null,
+                    "reference": ""
+                }
+            ],
+            "create_time": 1747642046070,
+            "update_time": 1747712022159
+        }
+    ]
+}</code></pre>
+        </div>
+
+        <!-- 创建会话 -->
+        <div class="section" id="create-session">
+            <h2><a href="#create-session">3. 创建会话</a></h2>
+            <p>创建新的会话</p>
+
+            <div class="endpoint-info">
+                极速提示
+            </div>
+        </div>
+
+        <div class="back-to-top" id="backToTop" title="回到顶部">↑</div>
+
+        <footer>
+            <p>API 文档 © 2023 - 提供统一的接口规范和使用说明</p>
+        </footer>
+    </div>
+
+    <script>
+        // 滚动到顶部功能
+        const backToTopButton = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // 平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 100, // 减去导航高度
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // 流式响应高亮显示
+        document.querySelectorAll('.stream-data').forEach(el => {
+            const data = el.textContent;
+            let formatted = data;
+
+            // 高亮显示引用部分
+            formatted = formatted.replace(/"reference":\s*\{[\s\S]*?\}/g, match => {
+                return `<span class="reference">${match}</span>`;
+            });
+
+            // 高亮显示answer
+            formatted = formatted.replace(/"answer":\s*"[^"]*"/g, match => {
+                return `<span class="answer-highlight">${match}</span>`;
+            });
+
+            el.innerHTML = formatted;
+        });
+    </script>
+</body>
+</html>

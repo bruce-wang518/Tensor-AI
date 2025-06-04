@@ -5,79 +5,305 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>腾视科技知识库智能助手</title>
     <style>
-        /* 颜色系统（精确匹配图片） */
         :root {
-            --dark-blue: #0F172A;      /* 深蓝背景色 */
-            --border-blue: #00F7FF;   /* 浅蓝边框 */
-            --icon-purple: #8A2BE2;   /* 紫色图标 */
-            --pure-white: #FFFFFF;    /* 纯白文字 */
+            --neon-blue: #00F7FF;
+            --dark-bg: #0F172A;
+            --content-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255,255,255,0.15);
         }
 
-        /* 全局样式 */
         body {
             margin: 0;
             padding: 20px;
-            background: var(--dark-blue);
             font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
-            color: var(--pure-white);
+            color: #fff;
+            background: var(--dark-bg);
             min-height: 100vh;
         }
 
-        /* 消息容器（精确还原图片布局） */
-        .message-container {
-            width: 320px;             /* 匹配图片比例 */
-            margin: 40px auto;        /* 居中显示 */
-            border: 2px solid var(--border-blue);
-            border-radius: 12px;
-            padding: 24px;
-            position: relative;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        /* 图标样式（像素级还原） */
-        .inquiry-icon {
-            width: 64px;
-            height: 64px;
-            background: var(--icon-purple);
-            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15H9v-6h1v6zm5 0h-1v-6h1v6z"/></svg>');
-            margin: 0 auto 16px;       /* 下间距16px */
-        }
-
-        /* 文本内容（精确字体渲染） */
-        .inquiry-text {
-            font-size: 18px;
-            line-height: 1.3;
-            text-align: center;
-            letter-spacing: 0.5px;
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 6px;
-        }
-
-        /* 原有界面组件（保持完整结构） */
         .header-container {
-            /* 原有头部样式保持不变 */
-            border-bottom: 1px solid var(--border-blue);
+            max-width: 1200px;
+            margin: 0 auto 30px;
+        }
+
+        .title-tabs-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .header-title {
+            background: linear-gradient(45deg, #00F7FF, #0066FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            font-size: 28px;
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+            white-space: nowrap;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            background: rgba(255,255,255,0.1);
+            padding: 6px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .tab-item {
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 14px;
+        }
+
+        .tab-item.active {
+            background: #0084ff;
+            color: white;
+            border-color: #0084ff;
+            box-shadow: 0 2px 8px rgba(0,132,255,0.3);
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 160px);
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .sidebar {
-            /* 原有侧边栏样式 */
-            border-right: 1px solid var(--border-blue);
+            width: 300px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--content-bg);
+            padding: 15px;
+            backdrop-filter: blur(10px);
         }
 
-        .chat-input {
-            /* 输入框匹配图片风格 */
-            border: 1px solid var(--border-blue);
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .session-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .session-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            height: calc(100% - 60px);
+        }
+
+        .session-item {
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.8);
             background: rgba(255,255,255,0.05);
+            font-size: 14px;
         }
 
-        /* 动画效果（保持一致性） */
-        @keyframes fadeIn {
+        .session-item:hover {
+            background: rgba(0,132,255,0.1);
+        }
+
+        .session-item.selected {
+            background: rgba(0,132,255,0.2);
+            font-weight: 500;
+        }
+
+        .main {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            background: var(--content-bg);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        .assistant {
+            justify-content: flex-start;
+        }
+
+        .user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border-color);
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .user .message-content {
+            background: rgba(0,132,255,0.3);
+            border-color: rgba(0,132,255,0.5);
+        }
+
+        /* Markdown内容样式 */
+        .md-content {
+            font-family: inherit;
+        }
+
+        .md-content h3 {
+            font-size: 16px;
+            color: #00F7FF;
+            margin: 15px 0 10px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .md-content h4 {
+            font-size: 14px;
+            color: #80dfff;
+            margin: 12px 0 8px;
+        }
+
+        .md-content ul,
+        .md-content ol {
+            margin: 8px 0;
+            padding-left: 25px;
+        }
+
+        .md-content li {
+            margin: 6px 0;
+            position: relative;
+        }
+
+        .md-content li::before {
+            content: "•";
+            color: #00F7FF;
+            position: absolute;
+            left: -15px;
+        }
+
+        .md-content p {
+            margin: 8px 0;
+        }
+
+        /* 修改后的参考文档样式 */
+        .reference-badge {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin: 10px 0 0;
+            padding: 8px 12px;
+            background: rgba(0, 247, 255, 0.1);
+            border-radius: 6px;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .reference-badge a {
+            display: block;
+            color: var(--neon-blue) !important;
+            text-decoration: none;
+            margin: 4px 0;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(0, 247, 255, 0.3);
+            transition: all 0.2s ease;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .reference-badge a:hover {
+            border-bottom-color: var(--neon-blue);
+        }
+
+        .role-icon {
+            font-size: 18px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        textarea {
+            flex: 1;
+            height: 60px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            resize: vertical;
+            background: rgba(255,255,255,0.03);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        button {
+            background: #0084ff;
+            color: white;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover:not(:disabled) {
+            background: #0069d9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,132,255,0.3);
+        }
+
+        button:disabled {
+            background: rgba(255,255,255,0.1);
+            cursor: not-allowed;
+        }
+
+        @keyframes messageAppear {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
-
 </head>
 <body>
 <div class="header-container">
@@ -119,7 +345,6 @@
 </div>
 
 <script>
-    // 完整JavaScript逻辑
     let selectedSessionId = null;
     let currentTab = 'process';
     const sendButton = document.getElementById('sendButton');
@@ -266,16 +491,28 @@
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${msg.role}`;
 
+        // 格式化消息内容
         const formattedContent = formatMessageContent(msg.content);
+
+        // 解析参考链接
+        let referenceLinks = '';
+        if (msg.reference) {
+            referenceLinks = msg.reference.split(',').map(pair => {
+                const [title, url] = pair.split('|');
+                return `<a href="${url}" target="_blank" title="${decodeURIComponent(title)}">
+                          ${decodeURIComponent(title)}
+                        </a>`;
+            }).join('');
+        }
 
         messageDiv.innerHTML = `
             <div class="message-content">
                 <span class="role-icon">${msg.role === 'assistant' ? '🤖' : '👤'}</span>
                 <div class="md-content">${formattedContent}</div>
-                ${msg.reference ? `
+                ${referenceLinks ? `
                     <div class="reference-badge">
-                        信息来源：
-                        <a href="${msg.reference}" target="_blank">查看相关文档</a>
+                        <div style="color: rgba(255,255,255,0.8); margin-bottom: 6px;">参考文档：</div>
+                        ${referenceLinks}
                     </div>
                 ` : ''}
             </div>
@@ -285,24 +522,19 @@
     }
 
     function formatMessageContent(text) {
-        // 优化后的Markdown处理
-        let content = text
-            .replace(/##\d+\$\$/g, '')
+        // 清理特殊标记
+        let content = text.replace(/##\d+\$\$/g, '');
+
+        // Markdown转换
+        return content
             .replace(/###\s+(.+)/g, '<h3>$1</h3>')
             .replace(/##\s+(.+)/g, '<h4>$1</h4>')
-            .replace(/(\d+)\.\s(.+)/g, '<li class="ol-item">$2</li>')
-            .replace(/(\n\s*[-•])\s(.+)/g, '<li class="ul-item">$2</li>')
-            .replace(/\n{2,}/g, '\n')
-            .replace(/(^|\n)([^<].+)/g, (_, p1, p2) => {
-                return p2.trim() ? `<p>${p2}</p>` : '';
-            });
-
-        // 合并相邻列表
-        content = content
-            .replace(/<\/ul>\s*<ul>/g, '')
-            .replace(/<\/ol>\s*<ol>/g, '');
-
-        return content;
+            .replace(/(\d+)\.\s/g, '<li>$1. ')
+            .replace(/(\n\s*[-•])\s/g, '<li>')
+            .replace(/(<li>.*)(\n|$)/g, '$1</li>')
+            .replace(/(<\/h[34]>)\n/g, '$1')
+            .replace(/\n{2,}/g, '</p><p>')
+            .replace(/(^|\n)([^<].*)/g, '<p>$2</p>');
     }
 
     function scrollToBottom() {

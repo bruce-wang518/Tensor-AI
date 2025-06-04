@@ -1,8 +1,6 @@
 package com.example.service;
 
-import com.example.dto.MessageResponse;
-import com.example.dto.SessionDTO;
-import com.example.dto.SessionListResponse;
+import com.example.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -10,6 +8,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import com.example.dto.DtoConverter;
 import com.example.config.ChatConfig;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -69,9 +67,9 @@ public class RagflowService {
         );
     }
 
-    public List<SessionDTO> getSessions(String tab) {
+    public List<SessionDTO> getSessions(String appid) {
         try {
-            String chatId = chatConfig.getChatId(tab);
+            String chatId = chatConfig.getChatId(appid);
             String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
             System.out.println("url="+url);
 
@@ -100,8 +98,8 @@ public class RagflowService {
         }
     }
 
-    public void createSession(String tab,String name) {
-        String chatId = chatConfig.getChatId(tab);
+    public SessionResponseDTO createSession(String appid, String name) {
+        String chatId = chatConfig.getChatId(appid);
         String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
 
         HttpHeaders headers = new HttpHeaders();
@@ -110,11 +108,29 @@ public class RagflowService {
 
         Map<String, String> body = Collections.singletonMap("name", name);
 
-        restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(body, headers), Void.class);
+        // 直接使用 SessionResponseDTO 类型获取 Ragflow API 的完整响应
+        Map<String, Object> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(body, headers),
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+        ).getBody();
+
+        // 检查响应状态码
+        if (response == null || !"0".equals(response.get("code").toString())) {
+            String errorMsg = response != null ?
+                    response.getOrDefault("message", "创建会话失败").toString() :
+                    "无响应";
+            throw new RuntimeException("创建会话失败: " + errorMsg);
+        }
+
+        // 获取 data 部分并转换为 SessionResponseDTO
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(response.get("data"), SessionResponseDTO.class);
     }
 
-    public void deleteSessions(String tab,List<String> ids) {
-        String chatId = chatConfig.getChatId(tab);
+    public void deleteSessions(String appid,List<String> ids) {
+        String chatId = chatConfig.getChatId(appid);
         String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
 
         HttpHeaders headers = new HttpHeaders();
@@ -125,10 +141,10 @@ public class RagflowService {
 
         restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(body, headers), Void.class);
     }
-    public List<MessageResponse> getMessages(String tab,String sessionId) {
+    public List<MessageResponse> getMessages(String appid,String sessionId) {
         try {
             // 调用会话列表接口并过滤特定session
-            String chatId = chatConfig.getChatId(tab);
+            String chatId = chatConfig.getChatId(appid);
             String url = String.format("%s/api/v1/chats/%s/sessions?id=%s",
                     baseUrl, chatId, sessionId);
 
@@ -161,8 +177,8 @@ public class RagflowService {
         }
     }
 
-public MessageResponse sendMessage(String tab, String sessionId, String message) {
-    String chatId = chatConfig.getChatId(tab);
+public MessageResponse sendMessage(String appid, String sessionId, String message) {
+    String chatId = chatConfig.getChatId(appid);
     String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
 
     HttpHeaders headers = new HttpHeaders();
@@ -304,7 +320,7 @@ public MessageResponse sendMessage(String tab, String sessionId, String message)
         }
     }
 /// 流式消息接口///////////////////////////////////////////////////////////////////////////
-    public void streamMessage(String tab, String sessionId, String message, SseEmitter emitter) {
+    public void streamMessage(String appid, String sessionId, String message, SseEmitter emitter) {
         // 设置SSE超时时间（3分钟）
         emitter.onTimeout(() -> {
             System.out.println("SSE连接超时 sessionId:" + sessionId);
@@ -312,7 +328,7 @@ public MessageResponse sendMessage(String tab, String sessionId, String message)
         });
         emitter.onError(e -> System.err.println("SSE连接异常:" + e.getMessage()));
 
-        String chatId = chatConfig.getChatId(tab);
+        String chatId = chatConfig.getChatId(appid);
         String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
 
         WebClient client = buildStreamWebClient();
