@@ -14,8 +14,6 @@ server:
 ragflow:
   api:
     base-url: http://192.168.1.131:9380
-    key: ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm  #ragflow-IzYjFkM2EwMDQ4ZjExZjBhNmJmMDI0Mm
-
 
   chat:
     id.process: 1789fa2e3b9a11f096a70242ac130006  # 流程规范

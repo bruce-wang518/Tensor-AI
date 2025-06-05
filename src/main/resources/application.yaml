@@ -16,7 +16,6 @@ server:
 ragflow:
   api:
     base-url: http://127.0.0.1 #http://127.0.0.1
-    key: ragflow-IzYjFkM2EwMDQ4ZjExZjBhNmJmMDI0Mm  #ragflow-IzYjFkM2EwMDQ4ZjExZjBhNmJmMDI0Mm
 
   chat:
     id.process: ac4df552048b11f0b44b0242ac120006  # 流程规范

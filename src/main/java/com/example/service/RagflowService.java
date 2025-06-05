@@ -42,9 +42,6 @@ public class RagflowService {
     @Value("${ragflow.api.base-url}")
     private String baseUrl;
 
-    @Value("${ragflow.api.key}")
-    private String apiKey;
-
     private final RestTemplate restTemplate;
 
     private final ChatConfig chatConfig;
@@ -67,13 +64,15 @@ public class RagflowService {
         );
     }
 
-    public List<SessionDTO> getSessions(String appid) {
+    public List<SessionDTO> getSessions(String token, String appid) {
         try {
             String chatId = chatConfig.getChatId(appid);
             String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
             System.out.println("url="+url);
 
-            // 设置与Postman完全一致的请求头
+            String apiKey=chatConfig.getApikeyByToken(token);
+
+            // 设置与Postman完全一致的请求头String token,
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + apiKey);
             headers.set("User-Agent", "PostmanRuntime/7.44.0");
@@ -98,9 +97,11 @@ public class RagflowService {
         }
     }
 
-    public SessionResponseDTO createSession(String appid, String name) {
+    public SessionResponseDTO createSession(String token, String appid, String name) {
         String chatId = chatConfig.getChatId(appid);
         String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
+        String apiKey=chatConfig.getApikeyByToken(token);
+
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -128,10 +129,66 @@ public class RagflowService {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.convertValue(response.get("data"), SessionResponseDTO.class);
     }
+    // 更新：现在sessionId从请求体获取
+    public boolean updateSessionName(
+            String token,
+            String appid,
+            String sessionId,
+            String newName) {
 
-    public void deleteSessions(String appid,List<String> ids) {
+        try {
+            // 获取对应应用的聊天助手ID
+            String chatId = chatConfig.getChatId(appid);
+
+            // Ragflow API URL格式 (chat_id在路径中，session_id在请求体中)
+            String url = String.format(
+                    "%s/api/v1/chats/%s/sessions/%s",
+                    baseUrl, chatId, sessionId
+            );
+
+            String apiKey = chatConfig.getApikeyByToken(token);
+
+            // 构建请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + apiKey);
+
+            // 构建请求体 - 只包含name字段
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("name", newName);
+
+            // 发送PUT请求
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    new HttpEntity<>(requestBody, headers),
+                    Map.class
+            );
+
+            // 解析响应
+            if (response.getStatusCode() == HttpStatus.OK &&
+                    response.getBody() != null) {
+
+                Map<String, Object> body = response.getBody();
+                Integer code = (Integer) body.get("code");
+                return code != null && code == 0;
+            }
+            return false;
+
+        } catch (HttpClientErrorException e) {
+            System.err.println("会话更新失败：" + e.getResponseBodyAsString());
+            return false;
+        } catch (Exception e) {
+            System.err.println("会话更新异常：" + e.getMessage());
+            return false;
+        }
+    }
+
+    public void deleteSessions(String token, String appid,List<String> ids) {
         String chatId = chatConfig.getChatId(appid);
         String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
+        String apiKey=chatConfig.getApikeyByToken(token);
+
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -141,13 +198,14 @@ public class RagflowService {
 
         restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(body, headers), Void.class);
     }
-    public List<MessageResponse> getMessages(String appid,String sessionId) {
+    public List<MessageResponse> getMessages(String token, String appid,String sessionId) {
         try {
             // 调用会话列表接口并过滤特定session
             String chatId = chatConfig.getChatId(appid);
             String url = String.format("%s/api/v1/chats/%s/sessions?id=%s",
                     baseUrl, chatId, sessionId);
 
+            String apiKey=chatConfig.getApikeyByToken(token);
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + apiKey);
 
@@ -177,9 +235,11 @@ public class RagflowService {
         }
     }
 
-public MessageResponse sendMessage(String appid, String sessionId, String message) {
+public MessageResponse sendMessage(String token, String appid, String sessionId, String message) {
     String chatId = chatConfig.getChatId(appid);
     String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
+
+    String apiKey=chatConfig.getApikeyByToken(token);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -197,6 +257,8 @@ public MessageResponse sendMessage(String appid, String sessionId, String messag
                 Map.class
         );
 
+        System.out.println("API响应体: " + response.getBody());
+
         return parseRagflowResponse(response.getBody());
 
     } catch (HttpClientErrorException e) {
@@ -211,6 +273,7 @@ public MessageResponse sendMessage(String appid, String sessionId, String messag
         messageResponse.setRole("assistant");
 
         if (response.containsKey("data")) {
+
             Map<String, Object> data = (Map<String, Object>) response.get("data");
 
             // 解析回答内容
@@ -320,7 +383,7 @@ public MessageResponse sendMessage(String appid, String sessionId, String messag
         }
     }
 /// 流式消息接口///////////////////////////////////////////////////////////////////////////
-    public void streamMessage(String appid, String sessionId, String message, SseEmitter emitter) {
+    public void streamMessage(String token, String appid, String sessionId, String message, SseEmitter emitter) {
         // 设置SSE超时时间（3分钟）
         emitter.onTimeout(() -> {
             System.out.println("SSE连接超时 sessionId:" + sessionId);
@@ -330,6 +393,7 @@ public MessageResponse sendMessage(String appid, String sessionId, String messag
 
         String chatId = chatConfig.getChatId(appid);
         String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
+        String apiKey=chatConfig.getApikeyByToken(token);
 
         WebClient client = buildStreamWebClient();
 

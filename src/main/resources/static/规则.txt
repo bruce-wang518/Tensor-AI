@@ -3,16 +3,29 @@
     mvn clean install -U -DskipTests
     mvn package
     java -jar target/ragflow-api-1.0.0.jar
-    java -jar your-application.jar --spring.profiles.active=prod
+
+    杀死现有web进程
+    sudo ss -tulpn | grep :8080
+    tcp   LISTEN 0      100                *:8080             *:*    users:(("java",pid=16578,fd=33))
+    sudo kill -9 16578
+
+    nohup java -jar ragflow-api-1.0.0.jar --spring.profiles.active=prod > app.log 2>&1
+
+    java -jar ragflow-api-1.0.0.jar --spring.profiles.active=prod
+    java  -jar your-app.jar -Dchat.config.path=/path/to/custom-config.csv
 
     mysql -u root -p
     infini_rag_flow
     use rag_flow
 
+    git推送，在idea terminal设置代理
+    git config --global http.proxy http://127.0.0.1:7897
 
-mobile->token->apikey
+
+****************mobile->token->apikey映射，chatconfig定义***************
 13612345678,token-zjts,ragflow-JhMGQwYjRlNDA1YjExZjBiNjljMWI2YT
-13712345678 token-bruce,ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm
+13712345678,token-bruce,ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm
+13812345678,token-yuehan,ragflow-M1NGE2YWUyM2ExMTExZjA4MjFhMDI0Mm
 
 
 ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm
