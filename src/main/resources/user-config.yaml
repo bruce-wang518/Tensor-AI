@@ -4,7 +4,7 @@
   applications:
     process: "cdaacb8c41f111f09f3913c504f0ae96"
     product: "be2bfde241c011f0bff0c1a468e0fb80"
-    data: "af2068f441ef11f0abbcb714da4bbcd2"
+    model: "eb7f234a404a11f0b69c1b6a7be3d243"
 
 - userId: "13761389910"  # 用户28271946@qq.com
   token: "token-bruce"
@@ -12,7 +12,7 @@
   applications:
     process: "chatid4"
     product: "chatid5"
-    data: "chatid6"
+    model: "chatid6"
 
 - userId: "13812345678"  # 用户yuehan@qq.com
   token: "token-yuehan"
@@ -20,7 +20,7 @@
   applications:
     product: "chatid7"
     process: "chatid8"
-    data: "chatid9"
+    model: "chatid9"
 
 - userId: "13812345678"  # 本地配置 28271946@qq.com
   token: "token-dev"
@@ -28,6 +28,6 @@
   applications:
     product: "ac4df552048b11f0b44b0242ac120006"
     process: "34e07a0e142511f08b7a0242ac120007"
-    data: "e3c93b4c3ad011f0837e0242ac120003"
+    model: "e3c93b4c3ad011f0837e0242ac120003"
 
 
