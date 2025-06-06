@@ -1,6 +1,6 @@
 package com.example.controller;
 
-import com.example.config.ChatConfig;
+import com.example.config.UserConfigManager;
 import com.example.dto.*;
 import com.example.service.RagflowService;
 import org.apache.commons.lang3.StringUtils;
@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import com.example.config.ChatConfig;
 
 
 import java.util.List;
@@ -23,13 +22,13 @@ public class ChatController {
     private RagflowService ragflowService;
 
     @Autowired
-    private ChatConfig chatConfig;
+    private UserConfigManager userConfig;
 
     // 登录接口
     @PostMapping("/login")
     public Response<String> login(@RequestBody LoginRequest request) {
 
-        String token = chatConfig.getTokenByPhone(request.getMobile());
+        String token = userConfig.getTokenByUserId(request.getMobile());
         if (token == null || token.isEmpty()) {
             return Response.error(101,"invalid phone NO");
         }
@@ -39,11 +38,10 @@ public class ChatController {
     @GetMapping("/sessions")
     public Response<List<SessionDTO>> getSessions(@RequestHeader("token") String token, @RequestHeader("appid") String appid) {
 
-        String apiKey=chatConfig.getApikeyByToken(token);
+        String apiKey=userConfig.getApiKeyByToken(token);
         if (apiKey == null || apiKey.isEmpty())
           return Response.error(101,"invalid token "+token);
 
-        System.out.println("########appid=" + appid);
         List<SessionDTO> sessions = ragflowService.getSessions(token,appid);
         return Response.success(sessions);
     }
@@ -53,7 +51,7 @@ public class ChatController {
                                                       @RequestHeader("token") String token,
                                                       @RequestHeader("appid") String appid) {
         try {
-            String apiKey=chatConfig.getApikeyByToken(token);
+            String apiKey=userConfig.getApiKeyByToken(token);
             if (apiKey == null || apiKey.isEmpty())
                 return Response.error(101,"invalid token "+token);
 
@@ -71,7 +69,7 @@ public class ChatController {
             @RequestHeader("token") String token,
             @RequestHeader("appid") String appid) {
 
-        String apiKey = chatConfig.getApikeyByToken(token);
+        String apiKey = userConfig.getApiKeyByToken(token);
         if (apiKey == null || apiKey.isEmpty()) {
             return Response.error(101, "invalid token " + token);
         }
@@ -97,7 +95,7 @@ public class ChatController {
     public Response<Void> deleteSessions(@RequestBody DeleteRequest request,
                                          @RequestHeader("token") String token,
                                          @RequestHeader("appid") String appid) {
-        String apiKey=chatConfig.getApikeyByToken(token);
+        String apiKey=userConfig.getApiKeyByToken(token);
         if (apiKey == null || apiKey.isEmpty())
             return Response.error(101,"invalid token "+token);
 
@@ -109,7 +107,7 @@ public class ChatController {
     public Response<List<MessageResponse>> getMessages(@RequestParam String sessionId,
                                                        @RequestHeader("token") String token,
                                                        @RequestHeader("appid") String appid) {
-        String apiKey=chatConfig.getApikeyByToken(token);
+        String apiKey=userConfig.getApiKeyByToken(token);
         if (apiKey == null || apiKey.isEmpty())
             return Response.error(101,"invalid token "+token);
 
@@ -122,7 +120,7 @@ public class ChatController {
                                                  @RequestHeader("token") String token,
                                                  @RequestHeader("appid") String appid) {
         try {
-            String apiKey=chatConfig.getApikeyByToken(token);
+            String apiKey=userConfig.getApiKeyByToken(token);
             if (apiKey == null || apiKey.isEmpty())
                 return Response.error(101,"invalid token "+token);
 

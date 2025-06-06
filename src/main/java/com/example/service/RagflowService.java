@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.config.UserConfigManager;
 import com.example.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -25,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import com.example.config.ChatConfig;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import org.springframework.web.reactive.function.client.WebClient;
@@ -44,11 +44,11 @@ public class RagflowService {
 
     private final RestTemplate restTemplate;
 
-    private final ChatConfig chatConfig;
+    private final UserConfigManager userConfig;
 
     @Autowired
-    public RagflowService(ChatConfig chatConfig) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        this.chatConfig = chatConfig;
+    public RagflowService(UserConfigManager userConfig) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        this.userConfig = userConfig;
 
         SSLContext sslContext = SSLContextBuilder.create()
                 .loadTrustMaterial((chain, authType) -> true)
@@ -66,11 +66,11 @@ public class RagflowService {
 
     public List<SessionDTO> getSessions(String token, String appid) {
         try {
-            String chatId = chatConfig.getChatId(appid);
+            String chatId = userConfig.getChatIdByToken(token,appid);
             String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
             System.out.println("url="+url);
 
-            String apiKey=chatConfig.getApikeyByToken(token);
+            String apiKey=userConfig.getApiKeyByToken(token);
 
             // 设置与Postman完全一致的请求头String token,
             HttpHeaders headers = new HttpHeaders();
@@ -98,9 +98,9 @@ public class RagflowService {
     }
 
     public SessionResponseDTO createSession(String token, String appid, String name) {
-        String chatId = chatConfig.getChatId(appid);
+        String chatId = userConfig.getChatIdByToken(token,appid);
         String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
-        String apiKey=chatConfig.getApikeyByToken(token);
+        String apiKey=userConfig.getApiKeyByToken(token);
 
 
         HttpHeaders headers = new HttpHeaders();
@@ -138,7 +138,7 @@ public class RagflowService {
 
         try {
             // 获取对应应用的聊天助手ID
-            String chatId = chatConfig.getChatId(appid);
+            String chatId = userConfig.getChatIdByToken(token,appid);
 
             // Ragflow API URL格式 (chat_id在路径中，session_id在请求体中)
             String url = String.format(
@@ -146,7 +146,7 @@ public class RagflowService {
                     baseUrl, chatId, sessionId
             );
 
-            String apiKey = chatConfig.getApikeyByToken(token);
+            String apiKey = userConfig.getApiKeyByToken(token);
 
             // 构建请求头
             HttpHeaders headers = new HttpHeaders();
@@ -185,9 +185,9 @@ public class RagflowService {
     }
 
     public void deleteSessions(String token, String appid,List<String> ids) {
-        String chatId = chatConfig.getChatId(appid);
+        String chatId = userConfig.getChatIdByToken(token,appid);
         String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
-        String apiKey=chatConfig.getApikeyByToken(token);
+        String apiKey=userConfig.getApiKeyByToken(token);
 
 
         HttpHeaders headers = new HttpHeaders();
@@ -201,11 +201,11 @@ public class RagflowService {
     public List<MessageResponse> getMessages(String token, String appid,String sessionId) {
         try {
             // 调用会话列表接口并过滤特定session
-            String chatId = chatConfig.getChatId(appid);
+            String chatId = userConfig.getChatIdByToken(token,appid);
             String url = String.format("%s/api/v1/chats/%s/sessions?id=%s",
                     baseUrl, chatId, sessionId);
 
-            String apiKey=chatConfig.getApikeyByToken(token);
+            String apiKey=userConfig.getApiKeyByToken(token);
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + apiKey);
 
@@ -236,10 +236,10 @@ public class RagflowService {
     }
 
 public MessageResponse sendMessage(String token, String appid, String sessionId, String message) {
-    String chatId = chatConfig.getChatId(appid);
+    String chatId = userConfig.getChatIdByToken(token,appid);
     String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
 
-    String apiKey=chatConfig.getApikeyByToken(token);
+    String apiKey=userConfig.getApiKeyByToken(token);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -391,9 +391,9 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
         });
         emitter.onError(e -> System.err.println("SSE连接异常:" + e.getMessage()));
 
-        String chatId = chatConfig.getChatId(appid);
+        String chatId = userConfig.getChatIdByToken(token,appid);
         String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
-        String apiKey=chatConfig.getApikeyByToken(token);
+        String apiKey=userConfig.getApiKeyByToken(token);
 
         WebClient client = buildStreamWebClient();
 

@@ -4,15 +4,16 @@
     mvn package
     java -jar target/ragflow-api-1.0.0.jar
 
-    杀死现有web进程
+    杀死现有tomcat进程
     sudo ss -tulpn | grep :8080
     tcp   LISTEN 0      100                *:8080             *:*    users:(("java",pid=16578,fd=33))
     sudo kill -9 16578
 
-    nohup java -jar ragflow-api-1.0.0.jar --spring.profiles.active=prod > app.log 2>&1
+    //后台方式部署服务，注意目录位置
+    nohup java -jar ragflow-api-1.0.0.jar --spring.profiles.active=prod -Dchat.config.path=./user-config.yaml > app.log 2>&1
 
     java -jar ragflow-api-1.0.0.jar --spring.profiles.active=prod
-    java  -jar your-app.jar -Dchat.config.path=/path/to/custom-config.csv
+    java  -jar ragflow-api-1.0.0.jar -Dchat.config.path=./user-config.yaml
 
     mysql -u root -p
     infini_rag_flow
@@ -21,14 +22,10 @@
     git推送，在idea terminal设置代理
     git config --global http.proxy http://127.0.0.1:7897
 
-
 ****************mobile->token->apikey映射，chatconfig定义***************
 13612345678,token-zjts,ragflow-JhMGQwYjRlNDA1YjExZjBiNjljMWI2YT
 13712345678,token-bruce,ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm
 13812345678,token-yuehan,ragflow-M1NGE2YWUyM2ExMTExZjA4MjFhMDI0Mm
-
-
-ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm
 
 ********参考文档链接格式，可以直接打开。
     docx http://127.0.0.1/document/ec35214435e711f08da40242ac120006?ext=docx&prefix=document

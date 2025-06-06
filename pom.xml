@@ -89,6 +89,11 @@
             <artifactId>netty-handler</artifactId>
             <version>4.1.94.Final</version>
         </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.30</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
