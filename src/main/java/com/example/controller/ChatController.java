@@ -11,9 +11,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
+/**
+ * 聊天控制器 - 处理聊天相关的API请求
+ * CORS配置已移至WebConfig统一管理
+ */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ChatController {
 
     @Autowired

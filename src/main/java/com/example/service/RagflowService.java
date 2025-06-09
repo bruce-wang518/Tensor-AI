@@ -47,7 +47,8 @@ public class RagflowService {
     private final UserConfigManager userConfig;
 
     @Autowired
-    public RagflowService(UserConfigManager userConfig) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public RagflowService(UserConfigManager userConfig)
+            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         this.userConfig = userConfig;
 
         SSLContext sslContext = SSLContextBuilder.create()
@@ -60,17 +61,16 @@ public class RagflowService {
                 .build();
 
         this.restTemplate = new RestTemplate(
-                new HttpComponentsClientHttpRequestFactory(httpClient)
-        );
+                new HttpComponentsClientHttpRequestFactory(httpClient));
     }
 
     public List<SessionDTO> getSessions(String token, String appid) {
         try {
-            String chatId = userConfig.getChatIdByToken(token,appid);
+            String chatId = userConfig.getChatIdByToken(token, appid);
             String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
-            System.out.println("url="+url);
+            System.out.println("url=" + url);
 
-            String apiKey=userConfig.getApiKeyByToken(token);
+            String apiKey = userConfig.getApiKeyByToken(token);
 
             // 设置与Postman完全一致的请求头String token,
             HttpHeaders headers = new HttpHeaders();
@@ -84,8 +84,7 @@ public class RagflowService {
                     url,
                     HttpMethod.GET,
                     new HttpEntity<>(headers),
-                    SessionListResponse.class
-            );
+                    SessionListResponse.class);
 
             return Optional.ofNullable(response.getBody())
                     .map(SessionListResponse::getData)
@@ -98,10 +97,9 @@ public class RagflowService {
     }
 
     public SessionResponseDTO createSession(String token, String appid, String name) {
-        String chatId = userConfig.getChatIdByToken(token,appid);
+        String chatId = userConfig.getChatIdByToken(token, appid);
         String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
-        String apiKey=userConfig.getApiKeyByToken(token);
-
+        String apiKey = userConfig.getApiKeyByToken(token);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -114,14 +112,12 @@ public class RagflowService {
                 url,
                 HttpMethod.POST,
                 new HttpEntity<>(body, headers),
-                new ParameterizedTypeReference<Map<String, Object>>() {}
-        ).getBody();
+                new ParameterizedTypeReference<Map<String, Object>>() {
+                }).getBody();
 
         // 检查响应状态码
         if (response == null || !"0".equals(response.get("code").toString())) {
-            String errorMsg = response != null ?
-                    response.getOrDefault("message", "创建会话失败").toString() :
-                    "无响应";
+            String errorMsg = response != null ? response.getOrDefault("message", "创建会话失败").toString() : "无响应";
             throw new RuntimeException("创建会话失败: " + errorMsg);
         }
 
@@ -129,6 +125,7 @@ public class RagflowService {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.convertValue(response.get("data"), SessionResponseDTO.class);
     }
+
     // 更新：现在sessionId从请求体获取
     public boolean updateSessionName(
             String token,
@@ -138,13 +135,12 @@ public class RagflowService {
 
         try {
             // 获取对应应用的聊天助手ID
-            String chatId = userConfig.getChatIdByToken(token,appid);
+            String chatId = userConfig.getChatIdByToken(token, appid);
 
             // Ragflow API URL格式 (chat_id在路径中，session_id在请求体中)
             String url = String.format(
                     "%s/api/v1/chats/%s/sessions/%s",
-                    baseUrl, chatId, sessionId
-            );
+                    baseUrl, chatId, sessionId);
 
             String apiKey = userConfig.getApiKeyByToken(token);
 
@@ -162,8 +158,7 @@ public class RagflowService {
                     url,
                     HttpMethod.PUT,
                     new HttpEntity<>(requestBody, headers),
-                    Map.class
-            );
+                    Map.class);
 
             // 解析响应
             if (response.getStatusCode() == HttpStatus.OK &&
@@ -184,11 +179,10 @@ public class RagflowService {
         }
     }
 
-    public void deleteSessions(String token, String appid,List<String> ids) {
-        String chatId = userConfig.getChatIdByToken(token,appid);
+    public void deleteSessions(String token, String appid, List<String> ids) {
+        String chatId = userConfig.getChatIdByToken(token, appid);
         String url = String.format("%s/api/v1/chats/%s/sessions", baseUrl, chatId);
-        String apiKey=userConfig.getApiKeyByToken(token);
-
+        String apiKey = userConfig.getApiKeyByToken(token);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -198,14 +192,15 @@ public class RagflowService {
 
         restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(body, headers), Void.class);
     }
-    public List<MessageResponse> getMessages(String token, String appid,String sessionId) {
+
+    public List<MessageResponse> getMessages(String token, String appid, String sessionId) {
         try {
             // 调用会话列表接口并过滤特定session
-            String chatId = userConfig.getChatIdByToken(token,appid);
+            String chatId = userConfig.getChatIdByToken(token, appid);
             String url = String.format("%s/api/v1/chats/%s/sessions?id=%s",
                     baseUrl, chatId, sessionId);
 
-            String apiKey=userConfig.getApiKeyByToken(token);
+            String apiKey = userConfig.getApiKeyByToken(token);
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + apiKey);
 
@@ -213,8 +208,7 @@ public class RagflowService {
                     url,
                     HttpMethod.GET,
                     new HttpEntity<>(headers),
-                    SessionListResponse.class
-            );
+                    SessionListResponse.class);
 
             // 过滤并提取消息
             return Optional.ofNullable(response.getBody())
@@ -235,37 +229,36 @@ public class RagflowService {
         }
     }
 
-public MessageResponse sendMessage(String token, String appid, String sessionId, String message) {
-    String chatId = userConfig.getChatIdByToken(token,appid);
-    String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
+    public MessageResponse sendMessage(String token, String appid, String sessionId, String message) {
+        String chatId = userConfig.getChatIdByToken(token, appid);
+        String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
 
-    String apiKey=userConfig.getApiKeyByToken(token);
+        String apiKey = userConfig.getApiKeyByToken(token);
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set("Authorization", "Bearer " + apiKey);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + apiKey);
 
-    Map<String, Object> requestBody = new HashMap<>();
-    requestBody.put("question", message);
-    requestBody.put("session_id", sessionId);
-    requestBody.put("stream", false);
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("question", message);
+        requestBody.put("session_id", sessionId);
+        requestBody.put("stream", false);
 
-    try {
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-                url,
-                new HttpEntity<>(requestBody, headers),
-                Map.class
-        );
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    url,
+                    new HttpEntity<>(requestBody, headers),
+                    Map.class);
 
-        System.out.println("API响应体: " + response.getBody());
+            System.out.println("API响应体: " + response.getBody());
 
-        return parseRagflowResponse(response.getBody());
+            return parseRagflowResponse(response.getBody());
 
-    } catch (HttpClientErrorException e) {
-        //log.error("API调用失败: {}", e.getResponseBodyAsString());
-        return new MessageResponse("system", "服务暂时不可用");
+        } catch (HttpClientErrorException e) {
+            // log.error("API调用失败: {}", e.getResponseBodyAsString());
+            return new MessageResponse("system", "服务暂时不可用");
+        }
     }
-}
 
     // 在RagflowService中修改解析方法
     private MessageResponse parseRagflowResponse(Map<String, Object> response) {
@@ -320,15 +313,15 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
 
     // 核心链接生成方法
     private String buildDocumentPair(String docId, String docName) {
-        if (StringUtils.isBlank(docId)) return "";
+        if (StringUtils.isBlank(docId))
+            return "";
 
         // 1. 提取纯文件名（去除路径）
         String fileName = extractFileName(docName);
 
         // 2. 清理特殊字符作为标题
-        String title = StringUtils.isNotBlank(fileName) ?
-                fileName.replace(",", " ")  // 替换逗号
-                        .replace("|", "-")   // 替换竖线
+        String title = StringUtils.isNotBlank(fileName) ? fileName.replace(",", " ") // 替换逗号
+                .replace("|", "-") // 替换竖线
                 : "未命名文档";
 
         // 3. 提取文件扩展名
@@ -336,7 +329,7 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
 
         // 4. 构建固定prefix的URL
         String url = String.format("%s/document/%s?ext=%s&prefix=document",
-                baseUrl,  // 需配置前端地址，如：http://127.0.0.1
+                baseUrl, // 需配置前端地址，如：http://127.0.0.1
                 encodeURIComponent(docId),
                 encodeURIComponent(ext));
 
@@ -345,25 +338,23 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
 
     // 辅助方法：提取文件名（兼容Windows/Unix路径）
     private String extractFileName(String fullPath) {
-        if (StringUtils.isBlank(fullPath)) return "";
+        if (StringUtils.isBlank(fullPath))
+            return "";
 
         int lastSlashIndex = Math.max(
                 fullPath.lastIndexOf('/'),
-                fullPath.lastIndexOf('\\')
-        );
-        return (lastSlashIndex != -1) ?
-                fullPath.substring(lastSlashIndex + 1) :
-                fullPath;
+                fullPath.lastIndexOf('\\'));
+        return (lastSlashIndex != -1) ? fullPath.substring(lastSlashIndex + 1) : fullPath;
     }
 
     // 辅助方法：提取文件扩展名
     private String extractFileExtension(String fileName) {
-        if (StringUtils.isBlank(fileName)) return "pdf";
+        if (StringUtils.isBlank(fileName))
+            return "pdf";
 
         int lastDotIndex = fileName.lastIndexOf('.');
-        return (lastDotIndex != -1 && lastDotIndex < fileName.length() - 1) ?
-                fileName.substring(lastDotIndex + 1) :
-                "pdf";
+        return (lastDotIndex != -1 && lastDotIndex < fileName.length() - 1) ? fileName.substring(lastDotIndex + 1)
+                : "pdf";
     }
 
     // 辅助方法：安全获取字符串
@@ -382,7 +373,8 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
             return s;
         }
     }
-/// 流式消息接口///////////////////////////////////////////////////////////////////////////
+
+    /// 流式消息接口///////////////////////////////////////////////////////////////////////////
     public void streamMessage(String token, String appid, String sessionId, String message, SseEmitter emitter) {
         // 设置SSE超时时间（3分钟）
         emitter.onTimeout(() -> {
@@ -391,9 +383,9 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
         });
         emitter.onError(e -> System.err.println("SSE连接异常:" + e.getMessage()));
 
-        String chatId = userConfig.getChatIdByToken(token,appid);
+        String chatId = userConfig.getChatIdByToken(token, appid);
         String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
-        String apiKey=userConfig.getApiKeyByToken(token);
+        String apiKey = userConfig.getApiKeyByToken(token);
 
         WebClient client = buildStreamWebClient();
 
@@ -413,8 +405,7 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
                 .subscribe(
                         chunk -> processStreamData(chunk, emitter),
                         error -> handleStreamError(error, emitter),
-                        () -> completeStream(emitter)
-                );
+                        () -> completeStream(emitter));
     }
 
     private void processStreamData(String chunk, SseEmitter emitter) {
@@ -424,8 +415,7 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
             emitter.send(SseEmitter.event()
                     .data(chunk)
                     .id(UUID.randomUUID().toString())
-                    .reconnectTime(3000)
-            );
+                    .reconnectTime(3000));
         } catch (Exception e) {
             sendError(emitter, "Stream error: " + e.getClass().getSimpleName());
         }
@@ -441,25 +431,19 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
                                 .responseTimeout(Duration.ofMinutes(3)) // 3分钟超时
                                 .secure(ssl -> ssl.sslContext(
                                         SslContextBuilder.forClient()
-                                                .trustManager(InsecureTrustManagerFactory.INSTANCE)
-                                ))
-                ))
+                                                .trustManager(InsecureTrustManagerFactory.INSTANCE)))))
                 .build();
     }
-
 
     private void handleStreamError(Throwable error, SseEmitter emitter) {
         String errorMsg = String.format("Stream error [%s]: %s",
                 LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME),
-                error.getMessage()
-        );
+                error.getMessage());
 
         try {
             String errorEvent = String.format("event: error\ndata: %s\n\n",
                     new ObjectMapper().writeValueAsString(
-                            Collections.singletonMap("error", errorMsg)
-                    )
-            );
+                            Collections.singletonMap("error", errorMsg)));
             emitter.send(errorEvent);
         } catch (Exception e) {
             System.err.println("发送错误事件失败: " + e.getMessage());
@@ -481,8 +465,7 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
         try {
             emitter.send(SseEmitter.event()
                     .data("{\"error\":\"" + message + "\"}")
-                    .name("error")
-            );
+                    .name("error"));
         } catch (Exception e) {
             emitter.completeWithError(e);
         }
