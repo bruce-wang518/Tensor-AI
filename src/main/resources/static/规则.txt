@@ -1,4 +1,3 @@
-
 ********编译和启动项目
     mvn clean install -U -DskipTests
     mvn package
@@ -10,7 +9,19 @@
     sudo kill -9 16578
 
     //后台方式部署服务，注意目录位置
-    nohup java -jar ragflow-api-1.0.0.jar --spring.profiles.active=prod -Dchat.config.path=./user-config.yaml > app.log 2>&1
+
+
+
+    Java 后端启动方法：
+    1. 查看 8080端口是否被占，如果被占，先kill对应进程
+        sudo ss -tulpn | grep :8080
+        tcp   LISTEN 0      100                *:8080             *:*    users:(("java",pid=16578,fd=33))
+        sudo kill -9 16578 (进程号)
+    2，启动java后台  (配置文件是同一目录的user-config.yaml,可以添加账号，配置对应的助手id)
+    cd /home/tensortec/backend
+    nohup java -jar ragflow-api-1.0.0.jar --spring.profiles.active=prod -Dchat.config.path=./user-config.yaml > app.log 2>&1 &
+
+    ps -ef | grep ragflow-api-1.0.0.jar
 
     java -jar ragflow-api-1.0.0.jar --spring.profiles.active=prod
     java  -jar ragflow-api-1.0.0.jar -Dchat.config.path=./user-config.yaml
@@ -22,10 +33,95 @@
     git推送，在idea terminal设置代理
     git config --global http.proxy http://127.0.0.1:7897
 
-****************mobile->token->apikey映射，chatconfig定义***************
-13612345678,token-zjts,ragflow-JhMGQwYjRlNDA1YjExZjBiNjljMWI2YT
-13712345678,token-bruce,ragflow-ZjODU3Y2MwM2I5YTExZjBiYjIxMDI0Mm
-13812345678,token-yuehan,ragflow-M1NGE2YWUyM2ExMTExZjA4MjFhMDI0Mm
+
+
+    *****************安装kibana***************
+    注意和es版本保持严格一致
+    docker pull docker.elastic.co/kibana/kibana:8.11.3
+    修改docker-compose-base文件，增加kibana配置
+      kibana:
+        container_name: ragflow-kibana
+        image: docker.elastic.co/kibana/kibana:8.11.3
+        ports:
+          - "${KIBANA_PORT}:5601"
+        environment:
+          - KIBANA_USER=rag_flow
+          - KIBANA_PASSWORD=infini_rag_flow
+          - ELASTICSEARCH_HOSTS=http://es01:9200
+          - ELASTICSEARCH_USERNAME="elastic/kibana"
+          - ELASTICSEARCH_PASSWORD="mypassword"
+          - TZ=Asia/Shanghai
+        depends_on:
+          es01:
+            condition: service_healthy
+        networks:
+          - ragflow
+        restart: on-failure
+
+    **********************es备份*********************
+    进入es容器
+    cd /usr/share/elasticsearch/bin
+
+    创建elastic/kibana用户
+    ./elasticsearch-users useradd elastic/kibana -p "mypassword" -r "kibana_system"
+
+    验证是否存在
+    ./elasticsearch-users list
+
+    docker-compose文件为kibana environment增加配置
+    - ELASTICSEARCH_USERNAME="elastic/kibana"
+    - ELASTICSEARCH_PASSWORD="mypassword"
+
+    http://127.0.0.1:6601/
+    提示登录es时，使用 elastic/infini_rag_flow
+
+
+    ------------------------es备份管理----------------
+    windows
+      创建 c:\es-backup目录
+      修改docker-compose-base es部分，增加映射
+      volumes:
+            - esdata01:/usr/share/elasticsearch/data
+            - C:\es_backup:/mnt/backups
+
+       enviroment
+            - path.repo=["/mnt/backups"]   # allow repo,used as backup
+
+       在es容器内部创建repo
+       docker exec -it es01 bash (linux)
+       curl -u elastic:infini_rag_flow -X PUT "http://localhost:9200/_snapshot/my_backup" -H 'Content-Type: application/json' -d'
+       {
+         "type": "fs",
+         "settings": {
+           "location": "/mnt/backups/elasticsearch_snapshots"
+         }
+       }'
+
+      创建快照
+      curl -u elastic:infini_rag_flow -X PUT "http://localhost:9200/_snapshot/my_backup/snapshot_$(date +%Y%m%d)" -H 'Content-Type: application/json' -d'
+      {
+        "indices": "*",
+        "ignore_unavailable": true,
+        "include_global_state": false
+      }'
+      查看已创建的快照：
+      curl -u elastic:infini_rag_flow -X GET "http://localhost:9200/_snapshot/my_backup/_all"
+
+      恢复快照
+      curl -u elastic:infini_rag_flow -X POST "http://localhost:9200/_snapshot/my_backup/snapshot_20250610/_restore" -H 'Content-Type: application/json' -d'
+      {
+      "indices": "*",          # 恢复所有索引
+      "ignore_unavailable": true,
+      "include_global_state": false  # 不恢复全局状态（避免冲突）
+      }'
+
+
+1、根据要求完成机器人应用层的设计、开发和维护，包括功能完整性、安全性等方面；
+2、进行机器人系统和各业务系统的对接、适配工作、配合研发相关的调试和测试工作；
+3、编写和维护软件产品文档，确保设计文档的准确性和完整性。
+任职要求： 1、计算机科学、自动化、控制工程或相关专业本科及以上学历，英语四级以上；
+2、有机器人项目或机器人比赛经验； 3、具备较强的沟通能力、学习能力、综合分析能力及解决问题能力；
+4、熟练运用C/C++、Python等进行开发、熟练使用ROS, ROS2、熟悉Linux开发环境。
 
 ********参考文档链接格式，可以直接打开。
     docx http://127.0.0.1/document/ec35214435e711f08da40242ac120006?ext=docx&prefix=document

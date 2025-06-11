@@ -46,6 +46,18 @@ public class ChatController {
         return Response.success(sessions);
     }
 
+    @GetMapping("/applications")
+    public Response<List<ApplicationDTO>> getUserApplications(@RequestHeader("token") String token) {
+        // 验证 token 有效性（通过 UserConfigManager 获取 apiKey 验证）
+        String apiKey = userConfig.getApiKeyByToken(token);
+        if (apiKey == null || apiKey.isEmpty()) {
+            return Response.error(101, "invalid token " + token);
+        }
+        // 获取用户关联的应用列表（包含id、name、type）
+        List<ApplicationDTO> applications = userConfig.getUserApplicationsByToken(token);
+        return Response.success(applications);
+    }
+
     @PostMapping("/sessions")
     public Response<SessionResponseDTO> createSession(@RequestBody SessionRequest request,
                                                       @RequestHeader("token") String token,

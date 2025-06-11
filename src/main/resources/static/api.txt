@@ -101,7 +101,30 @@ curl -H "token: token_123456" -H "appid: process" http://localhost:8080/api/sess
 }
 }
 
-4. 删除会话
+4. 修改会话名称
+URL: PUT /api/sessions/update
+功能: 创建新的会话
+
+请求头:
+token: <登录返回的token>
+appid: <应用ID>
+
+curl -H "token: token_123456" -H "appid: process" -d "{\"sessionId\":\"2968c1b866d2490a8a43d2a50ae6e0e6\",\"name\":\"项目需求讨论会\"}" http://localhost:8080/api/sessions/update
+
+请求体:
+{
+  "sessionId": "需要更新的会话ID"
+  "name": "新会话名称"
+}
+
+成功响应：
+{
+  "code": 0,
+  "message": null,
+  "data": null
+}
+
+5. 删除会话
 URL: DELETE /api/sessions
 功能: 批量删除会话
 请求头:
@@ -114,7 +137,6 @@ appid: <应用ID>
 
 curl -X DELETE -H "token: token_123456" -H "appid: process" -H "Content-Type: application/json" -d "{\"ids\":[\"06b7e296405011f09afb0242ac120006\"]}" http://localhost:8080/api/sessions
 
-
 成功响应:
 {
   "code": 0,
@@ -122,7 +144,7 @@ curl -X DELETE -H "token: token_123456" -H "appid: process" -H "Content-Type: ap
   "data": null
 }
 
-5. 获取消息记录
+6. 获取消息记录
 URL: GET /api/messages?sessionId=<会话ID>
 功能: 获取会话消息历史，可以是全部会话或指定会话
 请求头:
@@ -134,7 +156,6 @@ sessionId: 会话ID
 curl -H "token: token_123456" -H "appid: process" "http://localhost:8080/api/messages?sessionId=2968c1b866d2490a8a43d2a50ae6e0e6"
 
 成功响应:
-结果输出
 {
 "code":0,
 "message":null,
@@ -168,7 +189,7 @@ curl -H "token: token_123456" -H "appid: process" "http://localhost:8080/api/mes
 ]
 }
 
-6. 发送流式消息 (SSE流式)
+7. 发送流式消息 (SSE流式)
 URL: POST /api/messages/stream
 功能: 向指定会话发送消息并获取流式响应
 请求头:
@@ -209,7 +230,7 @@ retry:3000
 
 event:complete
 
-7. 发送消息
+8. 发送消息
 URL: POST /api/messages
 功能: 向指定会话发送消息并获取单次响应
 请求头:
@@ -283,3 +304,30 @@ curl -X POST -H "token: token_123456" -H "appid: process" -H "Content-Type: appl
     }
 }
 
+9. 获取用户应用列表
+URL: GET /api/applications
+功能: 获取当前用户名下关联的应用列表（每个应用包含id、name、type）
+
+请求头
+token: <登录返回的token>（必填，用于身份验证，无效token返回401未授权错误）
+appid: <应用ID>（必填，标识所属应用，当前接口未使用但需保留以符合规范）
+
+curl -H "token: token_123456" "http://localhost:8080/api/applications"
+
+成功响应:
+{
+  "code": 0,
+  "message": null,
+  "data": [
+    {
+      "id": "product",
+      "name": "name",  #扩展用，目前不需要
+      "type": "type"   #扩展用，目前不需要
+    },
+    {
+      "id": "process",
+      "name": "name",
+      "type": "type"
+    }
+  ]
+}

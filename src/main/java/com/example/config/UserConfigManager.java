@@ -1,6 +1,8 @@
 package com.example.config;
+import com.example.dto.ApplicationDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import java.util.stream.Collectors;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.yaml.snakeyaml.Yaml;
@@ -10,9 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 public class UserConfigManager {
@@ -133,6 +133,21 @@ public class UserConfigManager {
     public String getChatIdByToken(String token, String appId) {
         Map<String, String> apps = tokenToApps.get(token);
         return apps != null ? apps.get(appId) : null;
+    }
+
+   public List<ApplicationDTO> getUserApplicationsByToken(String token) {
+        // 1. 从 tokenToApps 中获取当前 token 对应的应用 Map（应用ID → 应用信息）
+        //    若 token 不存在，返回空 Map 避免空指针
+        Map<String, String> appsMap = tokenToApps.getOrDefault(token, new HashMap<>());
+
+        // 2. 提取应用 Map 的所有 key（即应用ID），转换为 List<String>
+        List<String> appIds = new ArrayList<>(appsMap.keySet());
+        // 3. 流处理：将每个应用ID转换为带硬编码 name/type 的 ApplicationDTO
+        return appIds.stream()
+                .map(appId -> {
+                    return new ApplicationDTO(appId,"app name","app type");
+                })
+                .collect(Collectors.toList()); // 收集为 List<ApplicationDTO>
     }
 
     // ================== Getter/Setter ==================

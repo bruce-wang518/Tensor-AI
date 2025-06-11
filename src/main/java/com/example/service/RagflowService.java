@@ -71,6 +71,9 @@ public class RagflowService {
             System.out.println("url="+url);
 
             String apiKey=userConfig.getApiKeyByToken(token);
+            System.out.println("**********token="+token);
+
+            System.out.println("**********apiKey="+apiKey);
 
             // 设置与Postman完全一致的请求头String token,
             HttpHeaders headers = new HttpHeaders();
@@ -86,6 +89,7 @@ public class RagflowService {
                     new HttpEntity<>(headers),
                     SessionListResponse.class
             );
+            System.out.println("**********getsession response"+response.getBody());
 
             return Optional.ofNullable(response.getBody())
                     .map(SessionListResponse::getData)
@@ -394,6 +398,8 @@ public MessageResponse sendMessage(String token, String appid, String sessionId,
         String chatId = userConfig.getChatIdByToken(token,appid);
         String url = String.format("%s/api/v1/chats/%s/completions", baseUrl, chatId);
         String apiKey=userConfig.getApiKeyByToken(token);
+        System.out.println("!!!!!!chatId="+chatId);
+        System.out.println("!!!!!!apiKey="+apiKey);
 
         WebClient client = buildStreamWebClient();
 
