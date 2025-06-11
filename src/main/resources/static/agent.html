@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI全能咨询顾问 - 智能聊天平台</title>
+    <style>
+        :root {
+            --neon-blue: #00F7FF;
+            --dark-bg: #0F172A;
+            --glass-bg: rgba(15, 23, 42, 0.9);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--dark-bg);
+            position: relative;
+        }
+
+        /* 动态背景 */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 300vw;
+            height: 300vh;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(0, 247, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(0, 247, 255, 0.1) 0%, transparent 50%);
+            animation: particleMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes particleMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100vw, -100vh); }
+        }
+
+        /* 固定导航栏 */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            padding: 1rem 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 247, 255, 0.2);
+            z-index: 1000;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            margin-right: 1rem;
+            filter: drop-shadow(0 0 5px var(--neon-blue));
+        }
+
+        /* 新版标题样式 */
+        .title-group {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+        }
+        .main-title {
+            background: linear-gradient(45deg, #00F7FF, #0066FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+        }
+        .tag-group {
+            display: flex;
+            gap: 0.8rem;
+        }
+        .tag {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            position: relative;
+            padding-right: 0.8rem;
+        }
+        .tag:not(:last-child)::after {
+            content: "|";
+            position: absolute;
+            right: 0;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* 聊天容器 */
+        .chat-container {
+            position: fixed;
+            top: 80px; /* 60+20 */
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 1rem;
+            border: 1px solid rgba(0, 247, 255, 0.2);
+            box-shadow: 
+                0 0 30px rgba(0, 247, 255, 0.1),
+                inset 0 0 15px rgba(0, 247, 255, 0.05);
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .nav-bar {
+                height: 50px;
+                padding: 0.8rem;
+            }
+            .main-title {
+                font-size: 1.4rem;
+            }
+            .tag {
+                font-size: 0.7rem;
+            }
+            .chat-container {
+                top: 70px;
+                width: 90%;
+                bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <svg class="logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-3-8.5h6v2H9v-2zm0-3h6v2H9v-2z" fill="var(--neon-blue)"/>
+        </svg>
+        <div class="title-group">
+            <span class="main-title">AI全能助手</span>
+            <div class="tag-group">
+                <span class="tag">投资</span>
+                <span class="tag">健康</span>
+                <span class="tag">情感</span>
+                <span class="tag">天气</span>
+                <span class="tag">更多</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="chat-container">
+         <!--
+         <iframe 
+            src="http://127.0.0.1/chat/share?shared_id=25f483ec145b11f0bdce0242ac120007&from=agent&auth=IzYjFlMWIwMDQ4ZjExZjBhNmJmMDI0Mm&locale=zh"
+            frameborder="0"
+            allow="microphone"
+        ></iframe>
+           -->
+
+       <iframe
+src="http://192.168.1.131:9222/chat/share?shared_id=79f7de623c6a11f0a18c0242ac140006&from=agent&auth=JhMGQxMDA4NDA1YjExZjBiNjljMWI2YT&locale=zh"
+       frameborder="0">
+       </iframe>
+    </div>
+</body>
+</html>
