@@ -15,7 +15,7 @@ server:
 
 ragflow:
   api:
-    base-url: http://127.0.0.1 #http://127.0.0.1
+    base-url: http://127.0.0.1:9380 #http://127.0.0.1:9380
 
   #chat:
    # id.process: 1789fa2e3b9a11f096a70242ac130006  # 流程规范
